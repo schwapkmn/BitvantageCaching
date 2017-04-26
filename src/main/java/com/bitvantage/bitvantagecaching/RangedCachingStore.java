@@ -21,28 +21,33 @@ import java.util.List;
  *
  * @author Matt Laquidara
  */
-public class RangedCachingStore<K extends RangedKey, V> extends CachingStore<K, V> implements
-    RangedStore<K, V> {
+public class RangedCachingStore<K extends RangedKey, V> extends CachingStore<K, V>
+        implements
+        RangedStore<K, V> {
 
     private final RangedStore store;
 
-    public RangedCachingStore(final RangedStore<K, V> store, final Cache<K, V> cache) {
+    public RangedCachingStore(final RangedStore<K, V> store,
+                              final Cache<K, V> cache) {
         super(store, cache);
         this.store = store;
     }
 
     @Override
-    public List<V> getValuesInRange(K bottom, K top) {
+    public List<V> getValuesInRange(K bottom, K top)
+            throws InterruptedException {
         return store.getValuesInRange(bottom, top);
     }
 
     @Override
-    public List<V> getValuesAbove(K bottom) {
+    public List<V> getValuesAbove(K bottom)
+            throws InterruptedException {
         return store.getValuesAbove(bottom);
     }
 
     @Override
-    public List<V> getValuesBelow(K top) {
+    public List<V> getValuesBelow(K top)
+            throws InterruptedException {
         return store.getValuesBelow(top);
     }
 

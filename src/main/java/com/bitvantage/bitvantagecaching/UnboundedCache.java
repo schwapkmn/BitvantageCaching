@@ -31,7 +31,7 @@ public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
     private int puts = 0;
 
     @Override
-    public V get(K key) {
+    public V get(K key) throws InterruptedException {
         V value = store.get(key);
         if (value == null) {
             misses++;
@@ -42,13 +42,13 @@ public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) {
+    public void put(K key, V value) throws InterruptedException {
         puts++;
         store.put(key, value);
     }
 
     @Override
-    public void invalidate(K key) {
+    public void invalidate(K key) throws InterruptedException {
         store.delete(key);
     }
 

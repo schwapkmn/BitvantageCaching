@@ -34,112 +34,112 @@ public class RangedLmdbStoreTest {
     }
 
     @Test
-    public void testGetsNothing() {
+    public void testGetsNothing() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
         store.close();
         Assert.assertTrue(output.isEmpty());
     }
 
     @Test
-    public void testGetsValueInRange() {
+    public void testGetsValueInRange() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'b'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertEquals(1, output.size());
     }
 
     @Test
-    public void testGetsValueBeginningOfRange() {
+    public void testGetsValueBeginningOfRange() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertEquals(1, output.size());
     }
 
     @Test
-    public void testGetsValueEndOfRange() {
+    public void testGetsValueEndOfRange() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertEquals(1, output.size());
     }
 
     @Test
-    public void testDoesNotGetValueBeyondEndOfRange() {
+    public void testDoesNotGetValueBeyondEndOfRange() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'y'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'y'));
 
         store.close();
         Assert.assertTrue(output.isEmpty());
     }
 
     @Test
-    public void testDoesNotGetValueBeforeBeginningOfRange() {
+    public void testDoesNotGetValueBeforeBeginningOfRange() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'b'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'b'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertTrue(output.isEmpty());
     }
 
     @Test
-    public void testGetsAllValues() {
+    public void testGetsAllValues() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertEquals(3, output.size());
     }
 
     @Test
-    public void testGetsOnlyValues() {
+    public void testGetsOnlyValues() throws Exception{
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'g'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'g'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertEquals(2, output.size());
     }
 
     @Test
-    public void testGetsOnlyRangedValues() {
+    public void testGetsOnlyRangedValues() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('b', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(new TestRangedKey('a', 'a'),
-                                                           new TestRangedKey('a', 'z'));
+        final List<String> output = store.getValuesInRange(
+                new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
         Assert.assertEquals(2, output.size());
@@ -150,7 +150,7 @@ public class RangedLmdbStoreTest {
         final Path path = storeDir.toPath();
 
         final RangedLmdbStore<TestRangedKey, String> store
-            = new RangedLmdbStore<>(path, String.class);
+                = new RangedLmdbStore<>(path, String.class);
 
         return store;
     }

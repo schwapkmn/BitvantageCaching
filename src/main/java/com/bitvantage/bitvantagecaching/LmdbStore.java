@@ -20,6 +20,7 @@ import com.google.common.collect.Multiset;
 import com.google.gson.Gson;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.concurrent.Semaphore;
 import org.fusesource.lmdbjni.Constants;
 import org.fusesource.lmdbjni.Cursor;
 import org.fusesource.lmdbjni.Database;
@@ -35,6 +36,7 @@ import org.fusesource.lmdbjni.Transaction;
 public class LmdbStore<K extends Key, V> implements Store<K, V> {
 
     protected final Env env;
+    protected final Semaphore semaphore;
     private final Gson serializer;
     private final Class valueType;
 
@@ -43,55 +45,74 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
         env.setMapSize(107374182400L);
         env.open(path.toString());
         serializer = new Gson();
+        semaphore = new Semaphore((int) env.getMaxReaders());
         this.valueType = valueType;
     }
 
     @Override
-    public V get(K key) {
+    public V get(K key) throws InterruptedException {
+        semaphore.acquire();
         final Database db = env.openDatabase();
-        final byte[] keyBytes = getKeyBytes(key);
-        final byte[] bytes = db.get(keyBytes);
-        final V value;
-        if (bytes == null) {
-            value = null;
-        } else {
-            value = getValue(bytes);
+        try {
+            final byte[] keyBytes = getKeyBytes(key);
+            final byte[] bytes = db.get(keyBytes);
+            final V value;
+            if (bytes == null) {
+                value = null;
+            } else {
+                value = getValue(bytes);
+            }
+            return value;
+        } finally {
+            db.close();
+            semaphore.release();
         }
-        db.close();
-
-        return value;
     }
 
     @Override
-    public void put(K key, V value) {
+    public void put(K key, V value) throws InterruptedException {
         final byte[] keyBytes = getKeyBytes(key);
         final byte[] valueBytes = getValueBytes(value);
+        semaphore.acquire();
         final Database db = env.openDatabase();
-        db.put(keyBytes, valueBytes);
-        db.close();
+        try {
+            db.put(keyBytes, valueBytes);
+        } finally {
+            db.close();
+            semaphore.release();
+        }
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws InterruptedException {
+        semaphore.acquire();
         final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
         final Cursor cursor = db.openCursor(tx);
-        boolean empty = (null == cursor.get(Constants.FIRST));
-        cursor.close();
-        tx.commit();
-        tx.close();
-        db.close();
-        return empty;
+
+        try {
+            boolean empty = (null == cursor.get(Constants.FIRST));
+            return empty;
+        } finally {
+            cursor.close();
+            tx.commit();
+            tx.close();
+            db.close();
+            semaphore.release();
+        }
     }
 
     @Override
-    public Multiset<V> getValues() {
+    public Multiset<V> getValues() throws InterruptedException {
+        semaphore.acquire();
         final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
-        final ImmutableMultiset.Builder<V> builder = ImmutableMultiset.builder();
+        final ImmutableMultiset.Builder<V> builder = ImmutableMultiset
+                .builder();
         final Cursor cursor = db.openCursor(tx);
         try {
-            for (Entry entry = cursor.get(Constants.FIRST); entry != null; entry
+            for (Entry entry = cursor.get(Constants.FIRST); entry != null;
+                 entry
                  = cursor.
                  get(Constants.NEXT)) {
                 builder.add(getValue(entry.getValue()));
@@ -102,86 +123,31 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
             tx.close();
             db.close();
             cursor.close();
+            semaphore.release();
         }
     }
 
-    public void copyFromBegining(Path newPath) {
-        final Env newEnv = new Env();
-        newEnv.setMapSize(107374182400L);
-        newEnv.open(newPath.toString());
-
-        final Database newDb = newEnv.openDatabase();
-
-        final Database db = env.openDatabase();
-        final Transaction tx = env.createReadTransaction();
+    public void close() throws InterruptedException {
+        semaphore.acquire();
         try {
-            final Cursor cursor = db.openCursor(tx);
-            try {
-                for (Entry entry = cursor.get(Constants.FIRST); entry != null;
-                     entry = cursor.
-                     get(Constants.NEXT)) {
-                    newDb.put(entry.getKey(), entry.getValue());
-                }
-            } finally {
-                cursor.close();
-            }
-
+            env.close();
         } finally {
-            tx.commit();
-            tx.close();
-            db.close();
-            newDb.close();
-            newEnv.close();
+            semaphore.release();
         }
-    }
-
-    public void copyFromEnd(Path newPath) {
-        final Env newEnv = new Env();
-        newEnv.setMapSize(107374182400L);
-        newEnv.open(newPath.toString());
-
-        final Database newDb = newEnv.openDatabase();
-
-        final Database db = env.openDatabase();
-        final Transaction tx = env.createReadTransaction();
-        try {
-            final EntryIterator itr = db.iterateBackward(tx);
-            try {
-                while (itr.hasNext()) {
-                    Entry entry = itr.next();
-                    newDb.put(entry.getKey(), entry.getValue());
-                }
-            } finally {
-                itr.close();
-            }
-
-        } finally {
-            tx.commit();
-            tx.close();
-            db.close();
-            newDb.close();
-            newEnv.close();
-        }
-    }
-
-    public void close() {
-        env.close();
     }
 
     @Override
-    public boolean containsKey(K key) {
-        final Database db = env.openDatabase();
-        final boolean contains = db.get(getKeyBytes(key)) != null;
-        db.close();
-
-        return contains;
+    public boolean containsKey(K key) throws InterruptedException {
+        return get(key) == null;
     }
 
     @Override
-    public void delete(K key) {
+    public void delete(K key) throws InterruptedException {
+        semaphore.acquire();
         final Database db = env.openDatabase();
         db.delete(getKeyBytes(key));
         db.close();
+        semaphore.release();
     }
 
     protected byte[] getKeyBytes(final K key) {

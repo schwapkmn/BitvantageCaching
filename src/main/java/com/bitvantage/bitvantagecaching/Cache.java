@@ -22,11 +22,11 @@ package com.bitvantage.bitvantagecaching;
  */
 public interface Cache<K extends Key, V> {
 
-    V get(K key);
+    V get(K key) throws InterruptedException;
 
-    void put(K key, V value);
+    void put(K key, V value) throws InterruptedException;
 
-    void invalidate(K key);
+    void invalidate(K key) throws InterruptedException;
 
     String getStats();
 

@@ -35,7 +35,7 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     private final Clock clock;
 
     @Override
-    public V get(K key) {
+    public V get(K key) throws InterruptedException {
         List<VersionedValue<V>> values = store.get(key);
 
         if (values == null) {
@@ -45,7 +45,7 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(K key, V newValue) {
+    public void put(K key, V newValue) throws InterruptedException {
         List<VersionedValue<V>> existingValue = store.get(key);
 
         List<VersionedValue<V>> value;
@@ -60,12 +60,12 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws InterruptedException {
         return store.isEmpty();
     }
 
     @Override
-    public boolean containsKey(K key) {
+    public boolean containsKey(K key) throws InterruptedException {
         return store.containsKey(key);
     }
 
@@ -75,7 +75,7 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public Multiset<V> getValues() {
+    public Multiset<V> getValues() throws InterruptedException {
         final ImmutableMultiset.Builder<V> builder = ImmutableMultiset.builder();
         final Multiset<List<VersionedValue<V>>> versionedValues = store.getValues();
         for (List<VersionedValue<V>> versionedValue : versionedValues) {

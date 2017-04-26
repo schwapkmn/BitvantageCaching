@@ -26,7 +26,7 @@ import org.fusesource.lmdbjni.Transaction;
 
 /**
  * Uses LMDB to associate ranged keys with values.
- * 
+ *
  * @author Matt Laquidara
  */
 public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
@@ -37,7 +37,9 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
     }
 
     @Override
-    public List<V> getValuesInRange(final K min, final K max) {
+    public List<V> getValuesInRange(final K min, final K max)
+            throws InterruptedException {
+        semaphore.acquire();
         final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
 
@@ -57,7 +59,7 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
             if (maxIterator.hasNext()) {
                 final Entry lastEntry = maxIterator.next();
                 lastKeyBytes = lastEntry.getKey();
-                
+
                 /* If lastKey matches maxKey, include its value in the output. */
                 if (Arrays.equals(lastKeyBytes, maxKeyBytes)) {
                     addLast = true;
@@ -84,16 +86,17 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
             tx.commit();
             tx.close();
             db.close();
+            semaphore.release();
         }
     }
 
     @Override
-    public List<V> getValuesAbove(K bottom) {
+    public List<V> getValuesAbove(K bottom) throws InterruptedException {
         return getValuesInRange(bottom, bottom.getRangeMax());
     }
 
     @Override
-    public List<V> getValuesBelow(K top) {
+    public List<V> getValuesBelow(K top) throws InterruptedException {
         return getValuesInRange(top.getRangeMin(), top);
     }
 

@@ -24,15 +24,15 @@ import com.google.common.collect.Multiset;
  */
 public interface Store<K extends Key, V> {
 
-    boolean containsKey(K key);
+    boolean containsKey(K key) throws InterruptedException;
 
-    V get(K key);
+    V get(K key) throws InterruptedException;
 
-    void put(K key, V value);
+    void put(K key, V value) throws InterruptedException ;
 
-    void delete(K key);
+    void delete(K key) throws InterruptedException;
 
-    Multiset<V> getValues();
+    Multiset<V> getValues() throws InterruptedException;
 
-    boolean isEmpty();
+    boolean isEmpty() throws InterruptedException;
 }

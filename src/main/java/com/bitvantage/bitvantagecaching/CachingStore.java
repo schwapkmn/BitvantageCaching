@@ -29,7 +29,7 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     protected final Cache<K, V> cache;
 
     @Override
-    public boolean containsKey(K key) {
+    public boolean containsKey(K key) throws InterruptedException {
         if (cache.get(key) != null) {
             return true;
         }
@@ -37,7 +37,7 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public V get(K key) {
+    public V get(K key) throws InterruptedException {
         V cacheValue = cache.get(key);
         if (cacheValue == null) {
             V storeValue = store.get(key);
@@ -50,23 +50,23 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(K key, V value) {
+    public void put(K key, V value) throws InterruptedException {
         store.put(key, value);
     }
 
     @Override
-    public void delete(K key) {
+    public void delete(K key) throws InterruptedException {
         cache.invalidate(key);
         store.delete(key);
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws InterruptedException {
         return store.isEmpty();
     }
 
     @Override
-    public Multiset<V> getValues() {
+    public Multiset<V> getValues() throws InterruptedException {
         return store.getValues();
     }
 

@@ -36,7 +36,7 @@ public class TTLCache<K extends Key, V> implements Cache<K, V> {
     private int puts = 0;
 
     @Override
-    public V get(K key) {
+    public V get(K key) throws InterruptedException {
         TTLContainer<V> container = store.get(key);
 
         if (container == null) {
@@ -55,14 +55,14 @@ public class TTLCache<K extends Key, V> implements Cache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) {
+    public void put(K key, V value) throws InterruptedException {
         TTLContainer<V> container = new TTLContainer(Instant.now(clock).plus(timeToLive), value);
         store.put(key, container);
         puts++;
     }
 
     @Override
-    public void invalidate(K key) {
+    public void invalidate(K key) throws InterruptedException {
         TTLContainer<V> container = store.get(key);
 
         if (container != null) {
