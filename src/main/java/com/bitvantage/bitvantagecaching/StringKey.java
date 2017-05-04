@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2017 Public Transit Analytics.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,31 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import lombok.Value;
+
 /**
- * Interface for a key-value cache.
  *
- * @author Matt Laquidara
+ * @author Public Transit Analytics
  */
-public interface Cache<K extends Key, V> {
-
-    V get(K key) throws InterruptedException, BitvantageStoreException;
-
-    void put(K key, V value) throws InterruptedException,
-            BitvantageStoreException;
-
-    void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException;
-
-    String getStats();
+@Value
+public class StringKey implements RangedKey<StringKey> {
     
-    void close();
+    private final String base;
+    private final String range;
+
+    @Override
+    public StringKey getRangeMin() {
+        return new StringKey(base, "a");
+    }
+
+    @Override
+    public StringKey getRangeMax() {
+        return new StringKey(base, "z");
+    }
+
+    @Override
+    public String getKeyString() {
+        return String.format("%s:%s", base, range);
+    }
 
 }

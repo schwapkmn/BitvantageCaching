@@ -24,15 +24,24 @@ import com.google.common.collect.Multiset;
  */
 public interface Store<K extends Key, V> {
 
-    boolean containsKey(K key) throws InterruptedException;
+    boolean containsKey(K key) throws BitvantageStoreException, 
+            InterruptedException;
 
-    V get(K key) throws InterruptedException;
+    V get(K key) throws BitvantageStoreException, InterruptedException;
 
-    void put(K key, V value) throws InterruptedException ;
+    void put(K key, V value) throws BitvantageStoreException,
+            InterruptedException ;
 
-    void delete(K key) throws InterruptedException;
+    void delete(K key) throws BitvantageStoreException,
+            InterruptedException;
 
-    Multiset<V> getValues() throws InterruptedException;
+    Multiset<V> getValues() throws BitvantageStoreException, 
+            InterruptedException;
 
-    boolean isEmpty() throws InterruptedException;
+    boolean isEmpty() throws BitvantageStoreException, 
+            InterruptedException;
+
+    int getMaxReaders();
+    
+    void close();
 }

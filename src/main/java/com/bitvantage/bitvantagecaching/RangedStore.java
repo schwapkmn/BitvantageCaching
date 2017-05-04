@@ -23,10 +23,13 @@ import java.util.List;
  */
 public interface RangedStore<K extends RangedKey, V> extends Store<K, V> {
 
-    List<V> getValuesInRange(K bottom, K top) throws InterruptedException;
+    List<V> getValuesInRange(K min, K max) throws InterruptedException,
+            BitvantageStoreException;
 
-    List<V> getValuesAbove(K bottom) throws InterruptedException;
+    List<V> getValuesAbove(K min) throws InterruptedException,
+            BitvantageStoreException;
 
-    List<V> getValuesBelow(K top) throws InterruptedException;
+    List<V> getValuesBelow(K max) throws InterruptedException,
+            BitvantageStoreException;
 
 }

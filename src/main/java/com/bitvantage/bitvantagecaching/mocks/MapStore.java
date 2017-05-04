@@ -62,4 +62,13 @@ public class MapStore<K extends Key, V> implements Store<K, V> {
         return map.isEmpty();
     }
 
+    @Override
+    public int getMaxReaders() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public void close() {
+    }
+
 }

@@ -35,7 +35,7 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     private final Clock clock;
 
     @Override
-    public V get(K key) throws InterruptedException {
+    public V get(K key) throws InterruptedException, BitvantageStoreException {
         List<VersionedValue<V>> values = store.get(key);
 
         if (values == null) {
@@ -45,7 +45,8 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(K key, V newValue) throws InterruptedException {
+    public void put(K key, V newValue) throws InterruptedException,
+            BitvantageStoreException {
         List<VersionedValue<V>> existingValue = store.get(key);
 
         List<VersionedValue<V>> value;
@@ -60,12 +61,14 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public boolean isEmpty() throws InterruptedException {
+    public boolean isEmpty() throws InterruptedException,
+            BitvantageStoreException {
         return store.isEmpty();
     }
 
     @Override
-    public boolean containsKey(K key) throws InterruptedException {
+    public boolean containsKey(K key) throws InterruptedException,
+            BitvantageStoreException {
         return store.containsKey(key);
     }
 
@@ -75,9 +78,11 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public Multiset<V> getValues() throws InterruptedException {
+    public Multiset<V> getValues() throws InterruptedException,
+            BitvantageStoreException {
         final ImmutableMultiset.Builder<V> builder = ImmutableMultiset.builder();
-        final Multiset<List<VersionedValue<V>>> versionedValues = store.getValues();
+        final Multiset<List<VersionedValue<V>>> versionedValues = store
+                .getValues();
         for (List<VersionedValue<V>> versionedValue : versionedValues) {
             builder.add(getLatest(versionedValue));
         }
@@ -85,12 +90,23 @@ public class VersioningStore<K extends Key, V> implements Store<K, V> {
     }
 
     private V getLatest(List<VersionedValue<V>> versionedValue) {
-        System.err.println(String.format("Got %s values", versionedValue.size()));
+        System.err
+                .println(String.format("Got %s values", versionedValue.size()));
 
         final TreeMap<Instant, V> map = new TreeMap<>();
         for (VersionedValue<V> value : versionedValue) {
             map.put(value.getVersion(), value.getValue());
         }
         return map.lastEntry().getValue();
+    }
+
+    @Override
+    public int getMaxReaders() {
+        return store.getMaxReaders();
+    }
+
+    @Override
+    public void close() {
+        store.close();
     }
 }

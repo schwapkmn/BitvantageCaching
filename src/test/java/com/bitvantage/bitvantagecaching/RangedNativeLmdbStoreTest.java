@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2017 Public Transit Analytics.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,83 +25,78 @@ import org.junit.Test;
 
 /**
  *
- * @author Matt Laquidara
+ * @author Public Transit Analytics
  */
-public class RangedLmdbStoreTest {
+public class RangedNativeLmdbStoreTest {
 
     @Test
     public void testGetsNothing() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
 
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
-        store.close();
+
         Assert.assertTrue(output.isEmpty());
     }
 
     @Test
     public void testGetsValueInRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'b'), "");
 
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertEquals(1, output.size());
     }
 
     @Test
     public void testGetsValueBeginningOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertEquals(1, output.size());
     }
 
     @Test
     public void testGetsValueEndOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertEquals(1, output.size());
     }
 
     @Test
     public void testDoesNotGetValueBeyondEndOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'y'));
 
-        store.close();
         Assert.assertTrue(output.isEmpty());
     }
 
     @Test
     public void testDoesNotGetValueBeforeBeginningOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'b'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertTrue(output.isEmpty());
     }
 
     @Test
     public void testGetsAllValues() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
@@ -109,13 +104,12 @@ public class RangedLmdbStoreTest {
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertEquals(3, output.size());
     }
 
     @Test
-    public void testGetsOnlyValues() throws Exception{
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+    public void testGetsOnlyValues() throws Exception {
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
@@ -123,13 +117,12 @@ public class RangedLmdbStoreTest {
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'g'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertEquals(2, output.size());
     }
 
     @Test
     public void testGetsOnlyRangedValues() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedNativeLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('b', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
@@ -137,18 +130,16 @@ public class RangedLmdbStoreTest {
         final List<String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
-        store.close();
         Assert.assertEquals(2, output.size());
     }
 
-    private RangedLmdbStore<TestRangedKey, String> getEmptyStore() {
+    private RangedNativeLmdbStore<TestRangedKey, String> getEmptyStore() {
         final File storeDir = Files.createTempDir();
         final Path path = storeDir.toPath();
 
-        final RangedLmdbStore<TestRangedKey, String> store
-                = new RangedLmdbStore<>(path, String.class);
+        final RangedNativeLmdbStore<TestRangedKey, String> store
+                = new RangedNativeLmdbStore<>(path, String.class);
 
         return store;
     }
-
 }

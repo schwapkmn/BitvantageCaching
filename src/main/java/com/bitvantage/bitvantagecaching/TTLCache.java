@@ -36,14 +36,15 @@ public class TTLCache<K extends Key, V> implements Cache<K, V> {
     private int puts = 0;
 
     @Override
-    public V get(K key) throws InterruptedException {
+    public V get(K key) throws InterruptedException, BitvantageStoreException {
         TTLContainer<V> container = store.get(key);
 
         if (container == null) {
             System.err.println(String.format("Could not get key %s.", key));
         } else if (Instant.now(clock).isAfter(container.getExpiration())) {
-           System.err.println(String.format("Key %s expired at %s.", key,
-                                             container.getExpiration().toString()));
+            System.err.println(String.format("Key %s expired at %s.", key,
+                                             container.getExpiration()
+                                             .toString()));
         } else {
             V value = container.getItem();
             //System.err.println(String.format("Found (%s %s).", key, value));
@@ -55,14 +56,17 @@ public class TTLCache<K extends Key, V> implements Cache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws InterruptedException {
-        TTLContainer<V> container = new TTLContainer(Instant.now(clock).plus(timeToLive), value);
+    public void put(K key, V value) throws InterruptedException,
+            BitvantageStoreException {
+        TTLContainer<V> container = new TTLContainer(Instant.now(clock).plus(
+                timeToLive), value);
         store.put(key, container);
         puts++;
     }
 
     @Override
-    public void invalidate(K key) throws InterruptedException {
+    public void invalidate(K key) throws InterruptedException,
+            BitvantageStoreException {
         TTLContainer<V> container = store.get(key);
 
         if (container != null) {
@@ -72,7 +76,13 @@ public class TTLCache<K extends Key, V> implements Cache<K, V> {
 
     @Override
     public String getStats() {
-        return String.format("hits: %s; misses: %s; puts: %s", hits, misses, puts);
+        return String.format("hits: %s; misses: %s; puts: %s", hits, misses,
+                             puts);
+    }
+
+    @Override
+    public void close() {
+        store.close();
     }
 
 }

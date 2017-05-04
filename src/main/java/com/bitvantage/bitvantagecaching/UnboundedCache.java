@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
  * @author Matt Laquidara
  */
 @RequiredArgsConstructor
-
 public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
 
     private final Store<K, V> store;
@@ -31,7 +30,7 @@ public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
     private int puts = 0;
 
     @Override
-    public V get(K key) throws InterruptedException {
+    public V get(K key) throws InterruptedException, BitvantageStoreException {
         V value = store.get(key);
         if (value == null) {
             misses++;
@@ -42,19 +41,27 @@ public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws InterruptedException {
+    public void put(K key, V value) throws InterruptedException,
+            BitvantageStoreException {
         puts++;
         store.put(key, value);
     }
 
     @Override
-    public void invalidate(K key) throws InterruptedException {
+    public void invalidate(K key) throws InterruptedException,
+            BitvantageStoreException {
         store.delete(key);
     }
 
     @Override
     public String getStats() {
-        return String.format("hits: %s; misses: %s; puts: %s", hits, misses, puts);
+        return String.format("hits: %s; misses: %s; puts: %s", hits, misses,
+                             puts);
+    }
+
+    @Override
+    public void close() {
+        store.close();
     }
 
 }

@@ -62,4 +62,13 @@ public class InMemoryHashStore<K extends Key, V> implements Store<K, V> {
         return ImmutableMultiset.copyOf(map.values());
     }
 
+    @Override
+    public int getMaxReaders() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public void close() {
+    }
+
 }

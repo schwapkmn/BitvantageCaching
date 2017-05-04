@@ -19,10 +19,10 @@ import com.google.common.collect.ImmutableList;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import org.fusesource.lmdbjni.Database;
 import org.fusesource.lmdbjni.Entry;
 import org.fusesource.lmdbjni.EntryIterator;
 import org.fusesource.lmdbjni.Transaction;
+
 
 /**
  * Uses LMDB to associate ranged keys with values.
@@ -39,8 +39,6 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
     @Override
     public List<V> getValuesInRange(final K min, final K max)
             throws InterruptedException {
-        semaphore.acquire();
-        final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
 
         final byte[] maxKeyBytes = getKeyBytes(max);
@@ -85,8 +83,6 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
             maxIterator.close();
             tx.commit();
             tx.close();
-            db.close();
-            semaphore.release();
         }
     }
 

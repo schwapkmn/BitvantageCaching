@@ -19,6 +19,9 @@ package com.bitvantage.bitvantagecaching;
  *
  * @author Matt Laquidara
  */
-public class StoreException extends Exception {
-
+public class BitvantageStoreException extends Exception {
+    
+    public BitvantageStoreException(final Exception e) {
+        super(e);
+    }
 }

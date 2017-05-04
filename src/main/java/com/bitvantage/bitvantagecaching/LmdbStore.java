@@ -20,12 +20,10 @@ import com.google.common.collect.Multiset;
 import com.google.gson.Gson;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.concurrent.Semaphore;
 import org.fusesource.lmdbjni.Constants;
 import org.fusesource.lmdbjni.Cursor;
 import org.fusesource.lmdbjni.Database;
 import org.fusesource.lmdbjni.Entry;
-import org.fusesource.lmdbjni.EntryIterator;
 import org.fusesource.lmdbjni.Env;
 import org.fusesource.lmdbjni.Transaction;
 
@@ -36,7 +34,8 @@ import org.fusesource.lmdbjni.Transaction;
 public class LmdbStore<K extends Key, V> implements Store<K, V> {
 
     protected final Env env;
-    protected final Semaphore semaphore;
+    protected final Database db;
+    private final Path path;
     private final Gson serializer;
     private final Class valueType;
 
@@ -44,15 +43,16 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
         env = new Env();
         env.setMapSize(107374182400L);
         env.open(path.toString());
+        env.readerCheck();
         serializer = new Gson();
-        semaphore = new Semaphore((int) env.getMaxReaders());
+        db = env.openDatabase();
+
         this.valueType = valueType;
+        this.path = path;
     }
 
     @Override
     public V get(K key) throws InterruptedException {
-        semaphore.acquire();
-        final Database db = env.openDatabase();
         try {
             final byte[] keyBytes = getKeyBytes(key);
             final byte[] bytes = db.get(keyBytes);
@@ -64,8 +64,6 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
             }
             return value;
         } finally {
-            db.close();
-            semaphore.release();
         }
     }
 
@@ -73,19 +71,14 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
     public void put(K key, V value) throws InterruptedException {
         final byte[] keyBytes = getKeyBytes(key);
         final byte[] valueBytes = getValueBytes(value);
-        semaphore.acquire();
-        final Database db = env.openDatabase();
         try {
             db.put(keyBytes, valueBytes);
         } finally {
-            db.close();
-            semaphore.release();
         }
     }
 
     @Override
     public boolean isEmpty() throws InterruptedException {
-        semaphore.acquire();
         final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
         final Cursor cursor = db.openCursor(tx);
@@ -98,23 +91,18 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
             tx.commit();
             tx.close();
             db.close();
-            semaphore.release();
         }
     }
 
     @Override
     public Multiset<V> getValues() throws InterruptedException {
-        semaphore.acquire();
-        final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
         final ImmutableMultiset.Builder<V> builder = ImmutableMultiset
                 .builder();
         final Cursor cursor = db.openCursor(tx);
         try {
             for (Entry entry = cursor.get(Constants.FIRST); entry != null;
-                 entry
-                 = cursor.
-                 get(Constants.NEXT)) {
+                 entry = cursor.get(Constants.NEXT)) {
                 builder.add(getValue(entry.getValue()));
             }
             return builder.build();
@@ -123,17 +111,13 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
             tx.close();
             db.close();
             cursor.close();
-            semaphore.release();
         }
     }
 
-    public void close() throws InterruptedException {
-        semaphore.acquire();
-        try {
-            env.close();
-        } finally {
-            semaphore.release();
-        }
+    @Override
+    public void close() {
+        db.close();
+        env.close();
     }
 
     @Override
@@ -143,11 +127,7 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
 
     @Override
     public void delete(K key) throws InterruptedException {
-        semaphore.acquire();
-        final Database db = env.openDatabase();
         db.delete(getKeyBytes(key));
-        db.close();
-        semaphore.release();
     }
 
     protected byte[] getKeyBytes(final K key) {
@@ -162,4 +142,10 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
         final String jsonString = new String(bytes, StandardCharsets.UTF_8);
         return (V) serializer.fromJson(jsonString, valueType);
     }
+
+    @Override
+    public int getMaxReaders() {
+        return (int) env.getMaxReaders();
+    }
+
 }

@@ -82,4 +82,13 @@ public class MapRangedStore<K extends RangedKey<K>, V> implements
         return map.isEmpty();
     }
 
+    @Override
+    public int getMaxReaders() {
+        return Integer.MAX_VALUE;
+    }
+
+    @Override
+    public void close() {
+    }
+
 }

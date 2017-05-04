@@ -29,7 +29,8 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     protected final Cache<K, V> cache;
 
     @Override
-    public boolean containsKey(K key) throws InterruptedException {
+    public boolean containsKey(K key) throws InterruptedException,
+            BitvantageStoreException {
         if (cache.get(key) != null) {
             return true;
         }
@@ -37,7 +38,7 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public V get(K key) throws InterruptedException {
+    public V get(K key) throws InterruptedException, BitvantageStoreException {
         V cacheValue = cache.get(key);
         if (cacheValue == null) {
             V storeValue = store.get(key);
@@ -50,24 +51,39 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws InterruptedException {
+    public void put(K key, V value) throws InterruptedException, 
+            BitvantageStoreException {
         store.put(key, value);
     }
 
     @Override
-    public void delete(K key) throws InterruptedException {
+    public void delete(K key) throws InterruptedException,
+            BitvantageStoreException {
         cache.invalidate(key);
         store.delete(key);
     }
 
     @Override
-    public boolean isEmpty() throws InterruptedException {
+    public boolean isEmpty() throws InterruptedException, 
+            BitvantageStoreException {
         return store.isEmpty();
     }
 
     @Override
-    public Multiset<V> getValues() throws InterruptedException {
+    public Multiset<V> getValues() throws InterruptedException, 
+            BitvantageStoreException {
         return store.getValues();
+    }
+
+    @Override
+    public int getMaxReaders() {
+        return store.getMaxReaders();
+    }
+
+    @Override
+    public void close() {
+        store.close();
+        cache.close();
     }
 
 }
