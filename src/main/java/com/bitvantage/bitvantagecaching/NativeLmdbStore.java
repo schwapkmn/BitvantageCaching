@@ -89,11 +89,10 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
 
     @Override
     public boolean isEmpty() throws InterruptedException {
-        final ImmutableMultiset.Builder<V> valuesBuilder
-                = ImmutableMultiset.builder();
         try (Txn<ByteBuffer> txn = env.txnRead()) {
             final Cursor<ByteBuffer> cursor = database.openCursor(txn);
-            return !cursor.first();
+            final boolean empty = !cursor.first();
+            return empty;
         }
     }
 

@@ -15,10 +15,13 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.GetOp;
 import org.lmdbjava.Txn;
@@ -30,14 +33,20 @@ import org.lmdbjava.Txn;
 public class RangedNativeLmdbStore<K extends RangedKey<K>, V>
         extends NativeLmdbStore<K, V> implements RangedStore<K, V> {
 
-    public RangedNativeLmdbStore(final Path path, final Class valueType) {
+    private final KeyMaterializer<K> keyMaterializer;
+
+    public RangedNativeLmdbStore(final Path path,
+                                 final KeyMaterializer keyMaterializer,
+                                 final Class valueType) {
         super(path, valueType);
+        this.keyMaterializer = keyMaterializer;
     }
 
     @Override
-    public List<V> getValuesInRange(final K min, final K max)
-            throws InterruptedException {
-        final ImmutableList.Builder<V> valuesBuilder = ImmutableList.builder();
+    public SortedMap<K, V> getValuesInRange(final K min, final K max)
+            throws InterruptedException, BitvantageStoreException {
+        final ImmutableSortedMap.Builder<K, V> valuesBuilder
+                = new ImmutableSortedMap.Builder<>(Ordering.natural());
 
         try (Txn<ByteBuffer> txn = env.txnRead()) {
 
@@ -67,11 +76,14 @@ public class RangedNativeLmdbStore<K extends RangedKey<K>, V>
                 final ByteBuffer keyBytes = cursor.key();
                 if (lastKeyBytes != null && lastKeyBytes.equals(keyBytes)) {
                     if (addLast) {
-                        valuesBuilder.add(getTypedValue(cursor.val()));
+                        valuesBuilder.put(getTypedKey(cursor.key()),
+                                          getTypedValue(cursor.val())
+                        );
                     }
                     break;
                 }
-                valuesBuilder.add(getTypedValue(cursor.val()));
+                valuesBuilder.put(getTypedKey(cursor.key()),
+                                  getTypedValue(cursor.val()));
                 present = cursor.next();
             }
 
@@ -80,12 +92,38 @@ public class RangedNativeLmdbStore<K extends RangedKey<K>, V>
     }
 
     @Override
-    public List<V> getValuesAbove(K bottom) throws InterruptedException {
+    public void putRange(SortedMap<K, V> values) {
+        final Txn<ByteBuffer> txn = env.txnWrite();
+        try {
+            for (Map.Entry<K, V> entry : values.entrySet()) {
+                database.put(txn, getKeyBytes(entry.getKey()),
+                             getValueBytes(entry.getValue()));
+            }
+        } finally {
+            txn.commit();
+            txn.close();
+        }
+    }
+
+    @Override
+    public SortedMap<K, V> getValuesAbove(K bottom) 
+            throws InterruptedException, BitvantageStoreException {
         return getValuesInRange(bottom, bottom.getRangeMax());
     }
 
     @Override
-    public List<V> getValuesBelow(K top) throws InterruptedException {
+    public SortedMap<K, V> getValuesBelow(K top) 
+            throws InterruptedException, BitvantageStoreException {
         return getValuesInRange(top.getRangeMin(), top);
     }
+
+    private K getTypedKey(final ByteBuffer bytes) 
+            throws BitvantageStoreException {
+        final ByteBuffer newBuffer = ByteBuffer.allocate(bytes.capacity());
+        newBuffer.put(bytes);
+        final String keyString = new String(newBuffer.array(),
+                                            StandardCharsets.UTF_8);
+        return keyMaterializer.materialize(keyString);
+    }
+
 }

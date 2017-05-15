@@ -15,21 +15,18 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import java.util.List;
+import java.util.SortedMap;
+import lombok.Value;
+
 /**
- * Interface for a key-value cache.
  *
  * @author Matt Laquidara
  */
-public interface Cache<K extends Key, V> {
-
-    V get(K key) throws InterruptedException, BitvantageStoreException;
-
-    void put(K key, V value) throws InterruptedException,
-            BitvantageStoreException;
-
-    void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException;
+@Value
+public class RangeStatus<K, V> {
     
-    void close();
-
+   final boolean cached;
+   final SortedMap<K, V> values;
+    
 }

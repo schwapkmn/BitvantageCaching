@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Public Transit Analytics.
+ * Copyright 2017 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,18 @@
 package com.bitvantage.bitvantagecaching;
 
 import java.util.List;
+import java.util.SortedMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 /**
  *
- * @author Public Transit Analytics
+ * @author Matt Laquidara
  */
 public class ReaderControlledRangedStore<K extends RangedKey, V> extends ReaderControlledStore<K, V>
         implements RangedStore<K, V> {
 
-    private RangedStore<K, V> backingStore;
+    private final RangedStore<K, V> backingStore;
 
     public ReaderControlledRangedStore(final RangedStore<K, V> backingStore,
                                        final int readers) {
@@ -35,11 +36,11 @@ public class ReaderControlledRangedStore<K extends RangedKey, V> extends ReaderC
     }
 
     @Override
-    public List<V> getValuesInRange(final K min, final K max) throws
+    public SortedMap<K, V> getValuesInRange(final K min, final K max) throws
             InterruptedException, BitvantageStoreException {
-        final Callable<List<V>> call = new Callable<List<V>>() {
+        final Callable<SortedMap<K, V>> call = new Callable<SortedMap<K, V>>() {
             @Override
-            public List<V> call() throws Exception {
+            public SortedMap<K, V> call() throws Exception {
                 return backingStore.getValuesInRange(min, max);
             }
         };
@@ -51,11 +52,11 @@ public class ReaderControlledRangedStore<K extends RangedKey, V> extends ReaderC
     }
 
     @Override
-    public List<V> getValuesAbove(final K min) throws InterruptedException,
-            BitvantageStoreException {
-        final Callable<List<V>> call = new Callable<List<V>>() {
+    public SortedMap<K, V> getValuesAbove(final K min) throws
+            InterruptedException, BitvantageStoreException {
+        final Callable<SortedMap<K, V>> call = new Callable<SortedMap<K, V>>() {
             @Override
-            public List<V> call() throws Exception {
+            public SortedMap<K, V> call() throws Exception {
                 return backingStore.getValuesAbove(min);
             }
         };
@@ -67,16 +68,33 @@ public class ReaderControlledRangedStore<K extends RangedKey, V> extends ReaderC
     }
 
     @Override
-    public List<V> getValuesBelow(K max) throws InterruptedException,
+    public SortedMap<K, V> getValuesBelow(K max) throws InterruptedException,
             BitvantageStoreException {
-        final Callable<List<V>> call = new Callable<List<V>>() {
+        final Callable<SortedMap<K, V>> call = new Callable<SortedMap<K, V>>() {
             @Override
-            public List<V> call() throws Exception {
+            public SortedMap<K, V> call() throws Exception {
                 return backingStore.getValuesBelow(max);
             }
         };
         try {
             return executor.submit(call).get();
+        } catch (final ExecutionException e) {
+            throw new BitvantageStoreException(e);
+        }
+    }
+
+    @Override
+    public void putRange(SortedMap<K, V> values)  throws InterruptedException,
+            BitvantageStoreException {
+        final Callable<Void> call = new Callable<Void>() {
+            @Override
+            public Void call() throws Exception {
+                backingStore.putRange(values);
+                return null;
+            }
+        };
+        try {
+            executor.submit(call).get();
         } catch (final ExecutionException e) {
             throw new BitvantageStoreException(e);
         }

@@ -20,6 +20,7 @@ import com.google.common.io.Files;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.SortedMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +34,7 @@ public class RangedLmdbStoreTest {
     public void testGetsNothing() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
         store.close();
         Assert.assertTrue(output.isEmpty());
@@ -44,7 +45,7 @@ public class RangedLmdbStoreTest {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'b'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -56,7 +57,7 @@ public class RangedLmdbStoreTest {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -68,7 +69,7 @@ public class RangedLmdbStoreTest {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -80,7 +81,7 @@ public class RangedLmdbStoreTest {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'y'));
 
         store.close();
@@ -92,7 +93,7 @@ public class RangedLmdbStoreTest {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'b'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -106,7 +107,7 @@ public class RangedLmdbStoreTest {
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -114,13 +115,13 @@ public class RangedLmdbStoreTest {
     }
 
     @Test
-    public void testGetsOnlyValues() throws Exception{
+    public void testGetsOnlyValues() throws Exception {
         final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'g'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -134,7 +135,7 @@ public class RangedLmdbStoreTest {
         store.put(new TestRangedKey('b', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
 
-        final List<String> output = store.getValuesInRange(
+        final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
 
         store.close();
@@ -146,7 +147,8 @@ public class RangedLmdbStoreTest {
         final Path path = storeDir.toPath();
 
         final RangedLmdbStore<TestRangedKey, String> store
-                = new RangedLmdbStore<>(path, String.class);
+                = new RangedLmdbStore<>(path, new TestRangedKey.Materializer(),
+                                        String.class);
 
         return store;
     }

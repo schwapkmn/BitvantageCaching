@@ -15,13 +15,13 @@
  */
 package com.bitvantage.bitvantagecaching.mocks;
 
+import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.RangedKey;
 import com.bitvantage.bitvantagecaching.RangedStore;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
-import java.util.List;
 import java.util.NavigableMap;
+import java.util.SortedMap;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -33,43 +33,41 @@ import lombok.RequiredArgsConstructor;
 public class MapRangedStore<K extends RangedKey<K>, V> implements
         RangedStore<K, V> {
 
-    private final NavigableMap<String, V> map;
+    private final NavigableMap<K, V> map;
 
     @Override
-    public List<V> getValuesInRange(final K bottom, final K top) {
-        return ImmutableList.copyOf(map.subMap(
-                bottom.getKeyString(), true, top.getKeyString(), true)
-                .values());
+    public SortedMap<K, V> getValuesInRange(final K bottom, final K top) {
+        return map.subMap(bottom, true, top, true);
     }
 
     @Override
-    public List<V> getValuesAbove(final K bottom) {
+    public SortedMap<K, V> getValuesAbove(final K bottom) {
         return getValuesInRange(bottom, bottom.getRangeMax());
     }
 
     @Override
-    public List<V> getValuesBelow(final K top) {
+    public SortedMap<K, V> getValuesBelow(final K top) {
         return getValuesInRange(top.getRangeMin(), top);
     }
 
     @Override
     public boolean containsKey(final K key) {
-        return map.containsKey(key.getKeyString());
+        return map.containsKey(key);
     }
 
     @Override
     public V get(final K key) {
-        return map.get(key.getKeyString());
+        return map.get(key);
     }
 
     @Override
     public void put(final K key, final V value) {
-        map.put(key.getKeyString(), value);
+        map.put(key, value);
     }
 
     @Override
     public void delete(K key) {
-        map.remove(key.getKeyString());
+        map.remove(key);
     }
 
     @Override
@@ -89,6 +87,12 @@ public class MapRangedStore<K extends RangedKey<K>, V> implements
 
     @Override
     public void close() {
+    }
+
+    @Override
+    public void putRange(SortedMap<K, V> values) throws InterruptedException,
+            BitvantageStoreException {
+        map.putAll(values);
     }
 
 }

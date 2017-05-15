@@ -45,11 +45,6 @@ public class MapCache<K extends Key, V> implements Cache<K, V> {
     }
 
     @Override
-    public String getStats() {
-        throw new UnsupportedOperationException("No stats for mocked cache."); 
-    }
-
-    @Override
     public void close() {
     }
     

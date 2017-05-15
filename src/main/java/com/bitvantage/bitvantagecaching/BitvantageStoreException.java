@@ -20,8 +20,12 @@ package com.bitvantage.bitvantagecaching;
  * @author Matt Laquidara
  */
 public class BitvantageStoreException extends Exception {
-    
+
     public BitvantageStoreException(final Exception e) {
         super(e);
+    }
+
+    public BitvantageStoreException(final String message) {
+        super(message);
     }
 }

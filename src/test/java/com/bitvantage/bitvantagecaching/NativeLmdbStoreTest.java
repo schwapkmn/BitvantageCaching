@@ -15,31 +15,30 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import lombok.Value;
+import com.bitvantage.bitvantagecaching.testhelpers.TestRangedKey;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *
  * @author Public Transit Analytics
  */
-@Value
-public class StringKey extends RangedKey<StringKey> {
+public class NativeLmdbStoreTest {
+
+    @Test
+    public void testEmpty() throws Exception {
+        final RangedNativeLmdbStore<TestRangedKey, String> store
+                = NativeLmdbTestHelpers.getEmptyStore();
+        Assert.assertTrue(store.isEmpty());
+    }
     
-    private final String base;
-    private final String range;
-
-    @Override
-    public StringKey getRangeMin() {
-        return new StringKey(base, "a");
-    }
-
-    @Override
-    public StringKey getRangeMax() {
-        return new StringKey(base, "z");
-    }
-
-    @Override
-    public String getKeyString() {
-        return String.format("%s:%s", base, range);
+    
+    @Test
+    public void testNonempty() throws Exception {
+        final RangedNativeLmdbStore<TestRangedKey, String> store
+                = NativeLmdbTestHelpers.getEmptyStore();
+        store.put(new TestRangedKey('a', 'a'), "a");
+        Assert.assertFalse(store.isEmpty());
     }
 
 }

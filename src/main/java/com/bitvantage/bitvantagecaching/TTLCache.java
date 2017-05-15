@@ -75,12 +75,6 @@ public class TTLCache<K extends Key, V> implements Cache<K, V> {
     }
 
     @Override
-    public String getStats() {
-        return String.format("hits: %s; misses: %s; puts: %s", hits, misses,
-                             puts);
-    }
-
-    @Override
     public void close() {
         store.close();
     }

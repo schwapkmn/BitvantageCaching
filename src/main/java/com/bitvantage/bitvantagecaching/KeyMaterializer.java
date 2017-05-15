@@ -16,20 +16,12 @@
 package com.bitvantage.bitvantagecaching;
 
 /**
- * Interface for a key-value cache.
  *
  * @author Matt Laquidara
  */
-public interface Cache<K extends Key, V> {
+public interface KeyMaterializer<K extends Key> {
 
-    V get(K key) throws InterruptedException, BitvantageStoreException;
-
-    void put(K key, V value) throws InterruptedException,
-            BitvantageStoreException;
-
-    void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException;
-    
-    void close();
+    public K materialize(final String keyString)
+            throws BitvantageStoreException;
 
 }

@@ -15,21 +15,21 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import com.google.common.collect.RangeMap;
+import java.util.SortedMap;
+
 /**
- * Interface for a key-value cache.
  *
  * @author Matt Laquidara
  */
-public interface Cache<K extends Key, V> {
+public interface RangedCache<K extends RangedKey<K>, V> extends Cache<K, V> {
 
-    V get(K key) throws InterruptedException, BitvantageStoreException;
+    public RangeMap<K, RangeStatus<K, V>> getRange(final K min, final K max)
+            throws InterruptedException, BitvantageStoreException;
 
-    void put(K key, V value) throws InterruptedException,
-            BitvantageStoreException;
-
-    void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException;
-    
-    void close();
+    public void putRange(
+            final K requestedMin, final K requestedMax,
+            final SortedMap<K, V> values)
+            throws InterruptedException, BitvantageStoreException;
 
 }

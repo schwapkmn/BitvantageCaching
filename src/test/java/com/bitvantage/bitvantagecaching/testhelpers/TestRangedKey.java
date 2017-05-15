@@ -15,7 +15,11 @@
  */
 package com.bitvantage.bitvantagecaching.testhelpers;
 
+import com.bitvantage.bitvantagecaching.BitvantageStoreException;
+import com.bitvantage.bitvantagecaching.KeyMaterializer;
 import com.bitvantage.bitvantagecaching.RangedKey;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.Value;
 
 /**
@@ -23,11 +27,10 @@ import lombok.Value;
  * @author Matt Laquidara
  */
 @Value
-public class TestRangedKey implements RangedKey<TestRangedKey> {
+public class TestRangedKey extends RangedKey<TestRangedKey> {
 
     private final char unrangedPart;
     private final char rangedPart;
-
 
     @Override
     public TestRangedKey getRangeMin() {
@@ -44,4 +47,21 @@ public class TestRangedKey implements RangedKey<TestRangedKey> {
         return String.format("%c:%c", unrangedPart, rangedPart);
     }
 
+    public static class Materializer implements KeyMaterializer<TestRangedKey> {
+
+        final Pattern pattern = Pattern.compile("(.):(.)");
+
+        @Override
+        public TestRangedKey materialize(final String keyString) 
+                throws BitvantageStoreException {
+            final Matcher matcher = pattern.matcher(keyString);
+            if (matcher.matches()) {
+                final char unranged = matcher.group(1).charAt(0);
+                final char ranged = matcher.group(2).charAt(0);
+                return new TestRangedKey(unranged, ranged);
+            }
+            throw new BitvantageStoreException(String.format(
+                    "Key string %s could not be materialized", keyString));
+        }
+    }
 }

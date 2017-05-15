@@ -19,10 +19,15 @@ package com.bitvantage.bitvantagecaching;
  *
  * @author Matt Laquidara
  */
-public interface RangedKey<K extends RangedKey> extends Key {
+public abstract class RangedKey<K extends RangedKey> implements Key,
+        Comparable<RangedKey> {
 
-    K getRangeMin();
+    public abstract K getRangeMin();
 
-    K getRangeMax();
+    public abstract K getRangeMax();
+
+    public int compareTo(final RangedKey other) {
+        return getKeyString().compareTo(other.getKeyString());
+    }
 
 }

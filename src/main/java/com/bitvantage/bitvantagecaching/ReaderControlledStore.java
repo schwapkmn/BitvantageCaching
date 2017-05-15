@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Public Transit Analytics.
+ * Copyright 2017 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 
 /**
  *
- * @author Public Transit Analytics
+ * @author Matt Laquidara
  */
 public class ReaderControlledStore<K extends Key, V> implements Store<K, V> {
 

@@ -15,31 +15,26 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import lombok.Value;
+import com.bitvantage.bitvantagecaching.testhelpers.TestRangedKey;
+import com.google.common.io.Files;
+import java.io.File;
+import java.nio.file.Path;
 
 /**
  *
  * @author Public Transit Analytics
  */
-@Value
-public class StringKey extends RangedKey<StringKey> {
+public class NativeLmdbTestHelpers {
     
-    private final String base;
-    private final String range;
+    public static RangedNativeLmdbStore<TestRangedKey, String> getEmptyStore() {
+        final File storeDir = Files.createTempDir();
+        final Path path = storeDir.toPath();
 
-    @Override
-    public StringKey getRangeMin() {
-        return new StringKey(base, "a");
+        final RangedNativeLmdbStore<TestRangedKey, String> store
+                = new RangedNativeLmdbStore<>(
+                        path, new TestRangedKey.Materializer(), String.class);
+
+        return store;
     }
-
-    @Override
-    public StringKey getRangeMax() {
-        return new StringKey(base, "z");
-    }
-
-    @Override
-    public String getKeyString() {
-        return String.format("%s:%s", base, range);
-    }
-
+    
 }

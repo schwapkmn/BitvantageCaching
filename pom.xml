@@ -53,6 +53,11 @@
             <artifactId>lmdbjava</artifactId>
             <version>0.0.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.deephacks.lmdbjni</groupId>
+            <artifactId>lmdbjni-linux64</artifactId>
+            <version>0.4.6</version>
+        </dependency>
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
