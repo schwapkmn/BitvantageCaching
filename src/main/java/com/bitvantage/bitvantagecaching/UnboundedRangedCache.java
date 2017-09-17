@@ -50,9 +50,12 @@ public class UnboundedRangedCache<K extends RangedKey<K>, V>
                                         new RangeStatus(true, values));
         } else {
             final RangeSet<K> cachedSubRanges;
+            final RangeSet<K> uncachedSubRanges;
             synchronized (this) {
                 cachedSubRanges = ImmutableRangeSet.copyOf(
                         requestedRanges.subRangeSet(requestRange));
+                uncachedSubRanges = ImmutableRangeSet.copyOf(
+                        requestedRanges.complement().subRangeSet(requestRange));
             }
             final ImmutableRangeMap.Builder<K, RangeStatus<K, V>> rangeMapBuilder
                     = ImmutableRangeMap.builder();
@@ -61,11 +64,6 @@ public class UnboundedRangedCache<K extends RangedKey<K>, V>
                         store.getValuesInRange(subRange.lowerEndpoint(),
                                                subRange.upperEndpoint()));
                 rangeMapBuilder.put(subRange, new RangeStatus(true, values));
-            }
-            final RangeSet<K> uncachedSubRanges;
-            synchronized (this) {
-                uncachedSubRanges = ImmutableRangeSet.copyOf(
-                        requestedRanges.complement().subRangeSet(requestRange));
             }
             for (final Range<K> subRange : uncachedSubRanges.asRanges()) {
                 rangeMapBuilder.put(subRange, new RangeStatus(false, null));

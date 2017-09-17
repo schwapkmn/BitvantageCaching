@@ -38,7 +38,7 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
 
     public RangedLmdbStore(final Path path,
                            final KeyMaterializer<K> keyMaterializer,
-                           final Class valueType) {
+                           final Class<V> valueType) {
         super(path, valueType);
         this.keyMaterializer = keyMaterializer;
     }

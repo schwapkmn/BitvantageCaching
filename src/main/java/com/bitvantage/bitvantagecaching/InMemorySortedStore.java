@@ -17,22 +17,21 @@ package com.bitvantage.bitvantagecaching;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
-import java.util.Collections;
 import java.util.NavigableMap;
 import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  *
  * @author Public Transit Analytics
  */
-public class InMemoryTreeStore<K extends RangedKey<K>, V>
+public class InMemorySortedStore<K extends RangedKey<K>, V>
         implements RangedStore<K, V> {
 
     final NavigableMap<K, V> map;
 
-    public InMemoryTreeStore() {
-        map = Collections.synchronizedNavigableMap(new TreeMap());
+    public InMemorySortedStore() {
+        map = new ConcurrentSkipListMap<>();
     }
 
     @Override

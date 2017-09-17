@@ -37,9 +37,9 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
     protected final Database db;
     private final Path path;
     private final Gson serializer;
-    private final Class valueType;
+    private final Class<V> valueType;
 
-    public LmdbStore(final Path path, final Class valueType) {
+    public LmdbStore(final Path path, final Class<V> valueType) {
         env = new Env();
         env.setMapSize(107374182400L);
         env.open(path.toString());
@@ -90,7 +90,6 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
             cursor.close();
             tx.commit();
             tx.close();
-            db.close();
         }
     }
 
@@ -109,15 +108,12 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
         } finally {
             tx.commit();
             tx.close();
-            db.close();
             cursor.close();
         }
     }
 
     @Override
     public void close() {
-        db.close();
-        env.close();
     }
 
     @Override
@@ -140,7 +136,7 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
 
     protected V getValue(byte[] bytes) {
         final String jsonString = new String(bytes, StandardCharsets.UTF_8);
-        return (V) serializer.fromJson(jsonString, valueType);
+        return serializer.fromJson(jsonString, valueType);
     }
 
     @Override
