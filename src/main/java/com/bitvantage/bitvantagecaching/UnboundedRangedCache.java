@@ -42,7 +42,7 @@ public class UnboundedRangedCache<K extends RangedKey<K>, V>
     @Override
     public RangeMap<K, RangeStatus<K, V>> getRange(final K min, final K max)
             throws InterruptedException, BitvantageStoreException {
-        final Range<K> requestRange = Range.open(min, max);
+        final Range<K> requestRange = Range.closed(min, max);
         if (requestedRanges.encloses(requestRange)) {
             final SortedMap<K, V> values = ImmutableSortedMap.copyOf(
                     store.getValuesInRange(min, max));

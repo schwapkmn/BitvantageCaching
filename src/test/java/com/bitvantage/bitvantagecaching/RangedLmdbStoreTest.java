@@ -19,7 +19,6 @@ import com.bitvantage.bitvantagecaching.testhelpers.TestRangedKey;
 import com.google.common.io.Files;
 import java.io.File;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.SortedMap;
 import org.junit.Assert;
 import org.junit.Test;
