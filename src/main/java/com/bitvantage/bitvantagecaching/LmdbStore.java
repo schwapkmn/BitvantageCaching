@@ -118,7 +118,7 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
 
     @Override
     public boolean containsKey(K key) throws InterruptedException {
-        return get(key) == null;
+        return get(key) != null;
     }
 
     @Override
