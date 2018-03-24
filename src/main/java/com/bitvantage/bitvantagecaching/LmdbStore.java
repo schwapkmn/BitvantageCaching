@@ -17,9 +17,9 @@ package com.bitvantage.bitvantagecaching;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
-import com.google.gson.Gson;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Map;
 import org.fusesource.lmdbjni.Constants;
 import org.fusesource.lmdbjni.Cursor;
 import org.fusesource.lmdbjni.Database;
@@ -36,23 +36,20 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
     protected final Env env;
     protected final Database db;
     private final Path path;
-    private final Gson serializer;
-    private final Class<V> valueType;
+    private final Serializer<V> serializer;
 
-    public LmdbStore(final Path path, final Class<V> valueType) {
+    public LmdbStore(final Path path, final Serializer<V> serializer) {
         env = new Env();
         env.setMapSize(107374182400L);
         env.open(path.toString());
-        env.readerCheck();
-        serializer = new Gson();
+        env.readerCheck();        
         db = env.openDatabase();
-
-        this.valueType = valueType;
         this.path = path;
+        this.serializer = serializer;
     }
 
     @Override
-    public V get(K key) throws InterruptedException {
+    public V get(final K key) throws InterruptedException {
         try {
             final byte[] keyBytes = getKeyBytes(key);
             final byte[] bytes = db.get(keyBytes);
@@ -68,12 +65,26 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws InterruptedException {
+    public void put(final K key, final V value) throws InterruptedException {
         final byte[] keyBytes = getKeyBytes(key);
         final byte[] valueBytes = getValueBytes(value);
         try {
             db.put(keyBytes, valueBytes);
         } finally {
+        }
+    }
+    
+    @Override
+    public void putAll(final Map<K, V> entries) {
+        final Transaction tx = env.createWriteTransaction();
+        try {
+            for (Map.Entry<K, V> entry : entries.entrySet()) {
+                db.put(tx, getKeyBytes(entry.getKey()),
+                       getValueBytes(entry.getValue()));
+            }
+        } finally {
+            tx.commit();
+            tx.close();
         }
     }
 
@@ -131,12 +142,11 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
     }
 
     protected byte[] getValueBytes(final V value) {
-        return serializer.toJson(value).getBytes(StandardCharsets.UTF_8);
+        return serializer.getBytes(value);
     }
 
     protected V getValue(byte[] bytes) {
-        final String jsonString = new String(bytes, StandardCharsets.UTF_8);
-        return serializer.fromJson(jsonString, valueType);
+        return serializer.getValue(bytes);
     }
 
     @Override

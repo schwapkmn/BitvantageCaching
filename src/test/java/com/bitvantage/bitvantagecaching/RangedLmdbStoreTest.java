@@ -147,7 +147,7 @@ public class RangedLmdbStoreTest {
 
         final RangedLmdbStore<TestRangedKey, String> store
                 = new RangedLmdbStore<>(path, new TestRangedKey.Materializer(),
-                                        String.class);
+                                        new GsonSerializer(String.class));
 
         return store;
     }

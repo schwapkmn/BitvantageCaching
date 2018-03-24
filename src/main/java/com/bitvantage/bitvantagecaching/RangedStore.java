@@ -15,7 +15,7 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import java.util.SortedMap;
+import java.util.NavigableMap;
 
 /**
  *
@@ -23,16 +23,13 @@ import java.util.SortedMap;
  */
 public interface RangedStore<K extends RangedKey, V> extends Store<K, V> {
 
-    SortedMap<K, V> getValuesInRange(K min, K max) throws InterruptedException,
+    NavigableMap<K, V> getValuesInRange(K min, K max) 
+            throws InterruptedException, BitvantageStoreException;
+
+    NavigableMap<K, V> getValuesAbove(K min) throws InterruptedException,
             BitvantageStoreException;
 
-    SortedMap<K, V> getValuesAbove(K min) throws InterruptedException,
-            BitvantageStoreException;
-
-    SortedMap<K, V> getValuesBelow(K max) throws InterruptedException,
-            BitvantageStoreException;
-    
-    void putRange(SortedMap<K, V> values) throws InterruptedException,
+    NavigableMap<K, V> getValuesBelow(K max) throws InterruptedException,
             BitvantageStoreException;
 
 }

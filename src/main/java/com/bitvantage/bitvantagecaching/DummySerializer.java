@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,22 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import lombok.Value;
-
 /**
  *
  * @author Matt Laquidara
  */
-@Value
-public class StorePair<K, V> {
+public class DummySerializer implements Serializer<Byte> {
 
-    K key;
-    V value;
+    private static final byte[] NO_BYTES = new byte[0];
+    
+    @Override
+    public byte[] getBytes(final Byte value) {
+        return NO_BYTES;
+    }
 
+    @Override
+    public Byte getValue(byte[] bytes) {
+        return 0;
+    }
+    
 }

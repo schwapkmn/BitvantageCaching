@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Public Transit Analytics.
+ * Copyright 2017 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import java.util.Map;
-import java.util.SortedMap;
+import java.util.NavigableMap;
 
 /**
  *
@@ -40,7 +40,7 @@ public class CachingRangedStore<K extends RangedKey<K>, V>
     }
 
     @Override
-    public SortedMap<K, V> getValuesInRange(final K min, final K max)
+    public NavigableMap<K, V> getValuesInRange(final K min, final K max)
             throws InterruptedException, BitvantageStoreException {
         final RangeMap<K, RangeStatus<K, V>> response = cache.getRange(min, max);
 
@@ -52,7 +52,7 @@ public class CachingRangedStore<K extends RangedKey<K>, V>
             if (entry.getValue().isCached()) {
                 responseBuilder.putAll(entry.getValue().getValues());
             } else {
-                final SortedMap<K, V> values = store.getValuesInRange(
+                final NavigableMap<K, V> values = store.getValuesInRange(
                         entry.getKey().lowerEndpoint(),
                         entry.getKey().upperEndpoint());
 
@@ -65,21 +65,15 @@ public class CachingRangedStore<K extends RangedKey<K>, V>
     }
 
     @Override
-    public SortedMap<K, V> getValuesAbove(final K min) throws
+    public NavigableMap<K, V> getValuesAbove(final K min) throws
             InterruptedException, BitvantageStoreException {
         return getValuesInRange(min, min.getRangeMax());
     }
 
     @Override
-    public SortedMap<K, V> getValuesBelow(final K max) throws
+    public NavigableMap<K, V> getValuesBelow(final K max) throws
             InterruptedException, BitvantageStoreException {
         return getValuesInRange(max.getRangeMin(), max);
-    }
-
-    @Override
-    public void putRange(final SortedMap<K, V> values) 
-            throws InterruptedException, BitvantageStoreException {
-        store.putRange(values);
     }
 
 }

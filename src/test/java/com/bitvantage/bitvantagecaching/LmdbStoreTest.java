@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Public Transit Analytics.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ public class LmdbStoreTest {
         final Path path = storeDir.toPath();
 
         final LmdbStore<TestKey, String> store
-                = new LmdbStore<>(path, String.class);
+                = new LmdbStore<>(path, new GsonSerializer(String.class));
 
         return store;
     }

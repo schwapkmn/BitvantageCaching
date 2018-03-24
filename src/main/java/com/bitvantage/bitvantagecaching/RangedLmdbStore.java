@@ -20,8 +20,7 @@ import com.google.common.collect.Ordering;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Map;
-import java.util.SortedMap;
+import java.util.NavigableMap;
 import org.fusesource.lmdbjni.Entry;
 import org.fusesource.lmdbjni.EntryIterator;
 import org.fusesource.lmdbjni.Transaction;
@@ -38,13 +37,13 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
 
     public RangedLmdbStore(final Path path,
                            final KeyMaterializer<K> keyMaterializer,
-                           final Class<V> valueType) {
-        super(path, valueType);
+                           final Serializer<V> serializer) {
+        super(path, serializer);
         this.keyMaterializer = keyMaterializer;
     }
 
     @Override
-    public SortedMap<K, V> getValuesInRange(final K min, final K max)
+    public NavigableMap<K, V> getValuesInRange(final K min, final K max)
             throws InterruptedException, BitvantageStoreException {
         final Transaction tx = env.createReadTransaction();
 
@@ -96,29 +95,15 @@ public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
     }
 
     @Override
-    public SortedMap<K, V> getValuesAbove(K bottom) 
+    public NavigableMap<K, V> getValuesAbove(K bottom) 
             throws InterruptedException, BitvantageStoreException {
         return getValuesInRange(bottom, bottom.getRangeMax());
     }
 
     @Override
-    public SortedMap<K, V> getValuesBelow(K top) 
+    public NavigableMap<K, V> getValuesBelow(K top) 
             throws InterruptedException, BitvantageStoreException {
         return getValuesInRange(top.getRangeMin(), top);
-    }
-
-    @Override
-    public void putRange(SortedMap<K, V> values) {
-        final Transaction tx = env.createWriteTransaction();
-        try {
-            for (Map.Entry<K, V> entry : values.entrySet()) {
-                db.put(tx, getKeyBytes(entry.getKey()),
-                       getValueBytes(entry.getValue()));
-            }
-        } finally {
-            tx.commit();
-            tx.close();
-        }
     }
 
     private K getKey(final byte[] bytes) throws BitvantageStoreException {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Public Transit Analytics.
+ * Copyright 2017 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@ package com.bitvantage.bitvantagecaching;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
+import java.util.Map;
 import java.util.NavigableMap;
-import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  *
- * @author Public Transit Analytics
+ * @author Matt Laquidara
  */
 public class InMemorySortedStore<K extends RangedKey<K>, V>
         implements RangedStore<K, V> {
@@ -35,20 +35,20 @@ public class InMemorySortedStore<K extends RangedKey<K>, V>
     }
 
     @Override
-    public SortedMap<K, V> getValuesInRange(final K min, final K max)
+    public NavigableMap<K, V> getValuesInRange(final K min, final K max)
             throws InterruptedException, BitvantageStoreException {
         return map.subMap(min, true, max, true);
     }
 
     @Override
-    public SortedMap<K, V> getValuesAbove(final K min) throws
+    public NavigableMap<K, V> getValuesAbove(final K min) throws
             InterruptedException,
             BitvantageStoreException {
         return getValuesInRange(min, min.getRangeMax());
     }
 
     @Override
-    public SortedMap<K, V> getValuesBelow(final K max)
+    public NavigableMap<K, V> getValuesBelow(final K max)
             throws InterruptedException, BitvantageStoreException {
         return getValuesInRange(max.getRangeMin(), max);
     }
@@ -99,7 +99,7 @@ public class InMemorySortedStore<K extends RangedKey<K>, V>
     }
 
     @Override
-    public void putRange(SortedMap<K, V> values) {
+    public void putAll(final Map<K, V> values) {
         map.putAll(values);
     }
 

@@ -26,6 +26,7 @@ public abstract class RangedKey<K extends RangedKey> implements Key,
 
     public abstract K getRangeMax();
 
+    @Override
     public int compareTo(final RangedKey other) {
         return getKeyString().compareTo(other.getKeyString());
     }

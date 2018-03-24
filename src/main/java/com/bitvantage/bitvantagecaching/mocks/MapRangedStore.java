@@ -15,13 +15,12 @@
  */
 package com.bitvantage.bitvantagecaching.mocks;
 
-import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.RangedKey;
 import com.bitvantage.bitvantagecaching.RangedStore;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
+import java.util.Map;
 import java.util.NavigableMap;
-import java.util.SortedMap;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -36,17 +35,17 @@ public class MapRangedStore<K extends RangedKey<K>, V> implements
     private final NavigableMap<K, V> map;
 
     @Override
-    public SortedMap<K, V> getValuesInRange(final K bottom, final K top) {
+    public NavigableMap<K, V> getValuesInRange(final K bottom, final K top) {
         return map.subMap(bottom, true, top, true);
     }
 
     @Override
-    public SortedMap<K, V> getValuesAbove(final K bottom) {
+    public NavigableMap<K, V> getValuesAbove(final K bottom) {
         return getValuesInRange(bottom, bottom.getRangeMax());
     }
 
     @Override
-    public SortedMap<K, V> getValuesBelow(final K top) {
+    public NavigableMap<K, V> getValuesBelow(final K top) {
         return getValuesInRange(top.getRangeMin(), top);
     }
 
@@ -90,8 +89,7 @@ public class MapRangedStore<K extends RangedKey<K>, V> implements
     }
 
     @Override
-    public void putRange(SortedMap<K, V> values) throws InterruptedException,
-            BitvantageStoreException {
+    public void putAll(final Map<K, V> values) {
         map.putAll(values);
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,33 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import lombok.Value;
+import com.google.gson.Gson;
+import java.nio.charset.StandardCharsets;
 
 /**
  *
  * @author Matt Laquidara
  */
-@Value
-public class StringKey extends RangedKey<StringKey> {
-    
-    private final String base;
-    private final String range;
+public class GsonSerializer<V> implements Serializer<V> {
 
-    @Override
-    public StringKey getRangeMin() {
-        return new StringKey(base, "a");
+    private final Gson gson;
+    private final Class<V> valueClass;
+
+    public GsonSerializer(final Class<V> valueClass) {
+        gson = new Gson();
+        this.valueClass = valueClass;
     }
 
     @Override
-    public StringKey getRangeMax() {
-        return new StringKey(base, "z");
+    public byte[] getBytes(final V value) {
+        final String json = gson.toJson(value);
+        return json.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public String getKeyString() {
-        return String.format("%s:%s", base, range);
+    public V getValue(byte[] bytes) {
+        final String json = new String(bytes, StandardCharsets.UTF_8);
+        return gson.fromJson(json, valueClass);
     }
 
 }

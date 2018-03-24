@@ -16,6 +16,7 @@
 package com.bitvantage.bitvantagecaching;
 
 import com.google.common.collect.Multiset;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -84,6 +85,11 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     public void close() {
         store.close();
         cache.close();
+    }
+
+    @Override
+    public void putAll(Map<K, V> entries) {
+        store.putAll(entries);
     }
 
 }

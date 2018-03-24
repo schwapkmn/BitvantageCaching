@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Public Transit Analytics.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  *
- * @author Public Transit Analytics
+ * @author Matt Laquidara
  */
 @RequiredArgsConstructor
 public class TestKey implements Key {

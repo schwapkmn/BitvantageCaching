@@ -71,4 +71,10 @@ public class MapStore<K extends Key, V> implements Store<K, V> {
     public void close() {
     }
 
+    @Override
+    public void putAll(final Map<K, V> entries) {
+        entries.entrySet().stream().forEach(entry -> map.put(
+                entry.getKey().getKeyString(), entry.getValue()));
+    }
+
 }

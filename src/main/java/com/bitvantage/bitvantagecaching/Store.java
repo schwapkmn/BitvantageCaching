@@ -16,6 +16,7 @@
 package com.bitvantage.bitvantagecaching;
 
 import com.google.common.collect.Multiset;
+import java.util.Map;
 
 /**
  * Interface for a key-value store.
@@ -31,6 +32,8 @@ public interface Store<K extends Key, V> {
 
     void put(K key, V value) throws BitvantageStoreException,
             InterruptedException ;
+    
+    void putAll(final Map<K, V> entries);
 
     void delete(K key) throws BitvantageStoreException,
             InterruptedException;

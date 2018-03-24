@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,22 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import java.io.Serializable;
-import java.time.Instant;
-import lombok.Value;
+import com.google.common.primitives.Ints;
 
 /**
  *
  * @author Matt Laquidara
  */
-@Value
-public class VersionedValue<T> implements Serializable {
+public class IntegerSerializer implements Serializer<Integer> {
 
-    Instant version;
-    T value;
+    @Override
+    public byte[] getBytes(final Integer value) {
+        return Ints.toByteArray(value);
+    }
 
+    @Override
+    public Integer getValue(byte[] bytes) {
+        return Ints.fromByteArray(bytes);
+    }
+    
 }

@@ -76,7 +76,7 @@ public class UnboundedRangedCache<K extends RangedKey<K>, V>
     public void putRange(
             final K requestedMin, K requestedMax, final SortedMap<K, V> values)
             throws InterruptedException, BitvantageStoreException {
-        store.putRange(values);
+        store.putAll(values);
         synchronized (this) {
             requestedRanges.add(Range.closed(requestedMin, requestedMax));
         }
