@@ -39,24 +39,19 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.deephacks.lmdb</groupId>
-            <artifactId>lmdb-osx64</artifactId>
-            <version>0.1.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.deephacks.lmdbjni</groupId>
             <artifactId>lmdbjni-osx64</artifactId>
             <version>0.4.6</version>
         </dependency>
         <dependency>
-            <groupId>org.lmdbjava</groupId>
-            <artifactId>lmdbjava</artifactId>
-            <version>0.0.5</version>
-        </dependency>
-        <dependency>
             <groupId>org.deephacks.lmdbjni</groupId>
             <artifactId>lmdbjni-linux64</artifactId>
             <version>0.4.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.lmdbjava</groupId>
+            <artifactId>lmdbjava</artifactId>
+            <version>0.6.0</version>
         </dependency>
     </dependencies>
     <properties>

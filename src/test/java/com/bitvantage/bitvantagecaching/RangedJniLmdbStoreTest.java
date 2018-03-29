@@ -27,11 +27,11 @@ import org.junit.Test;
  *
  * @author Matt Laquidara
  */
-public class RangedLmdbStoreTest {
+public class RangedJniLmdbStoreTest {
 
     @Test
     public void testGetsNothing() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
 
         final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
                 new TestRangedKey('a', 'a'), new TestRangedKey('a', 'z'));
@@ -41,7 +41,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testGetsValueInRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'b'), "");
 
         final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
@@ -53,7 +53,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testGetsValueBeginningOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
         final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
@@ -65,7 +65,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testGetsValueEndOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
         final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
@@ -77,7 +77,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testDoesNotGetValueBeyondEndOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'z'), "");
 
         final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
@@ -89,7 +89,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testDoesNotGetValueBeforeBeginningOfRange() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
 
         final SortedMap<TestRangedKey, String> output = store.getValuesInRange(
@@ -101,7 +101,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testGetsAllValues() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
@@ -115,7 +115,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testGetsOnlyValues() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('a', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
@@ -129,7 +129,7 @@ public class RangedLmdbStoreTest {
 
     @Test
     public void testGetsOnlyRangedValues() throws Exception {
-        final RangedLmdbStore<TestRangedKey, String> store = getEmptyStore();
+        final RangedJniLmdbStore<TestRangedKey, String> store = getEmptyStore();
         store.put(new TestRangedKey('a', 'a'), "");
         store.put(new TestRangedKey('b', 'm'), "");
         store.put(new TestRangedKey('a', 'z'), "");
@@ -141,12 +141,12 @@ public class RangedLmdbStoreTest {
         Assert.assertEquals(2, output.size());
     }
 
-    private RangedLmdbStore<TestRangedKey, String> getEmptyStore() {
+    private RangedJniLmdbStore<TestRangedKey, String> getEmptyStore() {
         final File storeDir = Files.createTempDir();
         final Path path = storeDir.toPath();
 
-        final RangedLmdbStore<TestRangedKey, String> store
-                = new RangedLmdbStore<>(path, new TestRangedKey.Materializer(),
+        final RangedJniLmdbStore<TestRangedKey, String> store
+                = new RangedJniLmdbStore<>(path, new TestRangedKey.Materializer(),
                                         new GsonSerializer(String.class));
 
         return store;

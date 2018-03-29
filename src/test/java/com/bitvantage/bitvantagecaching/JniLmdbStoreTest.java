@@ -26,28 +26,28 @@ import org.junit.Test;
  *
  * @author Matt Laquidara
  */
-public class LmdbStoreTest {
+public class JniLmdbStoreTest {
 
     @Test
     public void testDoesNotContainKey() throws Exception {
-        final LmdbStore<TestKey, String> store = getEmptyStore();
+        final JniLmdbStore<TestKey, String> store = getEmptyStore();
         Assert.assertFalse(store.containsKey(new TestKey("any")));
     }
 
     @Test
     public void testContainsKey() throws Exception {
-        final LmdbStore<TestKey, String> store = getEmptyStore();
+        final JniLmdbStore<TestKey, String> store = getEmptyStore();
         final TestKey key = new TestKey("key");
         store.put(key, "");
         Assert.assertTrue(store.containsKey(key));
     }
 
-    private LmdbStore<TestKey, String> getEmptyStore() {
+    private JniLmdbStore<TestKey, String> getEmptyStore() {
         final File storeDir = Files.createTempDir();
         final Path path = storeDir.toPath();
 
-        final LmdbStore<TestKey, String> store
-                = new LmdbStore<>(path, new GsonSerializer(String.class));
+        final JniLmdbStore<TestKey, String> store
+                = new JniLmdbStore<>(path, new GsonSerializer(String.class));
 
         return store;
     }

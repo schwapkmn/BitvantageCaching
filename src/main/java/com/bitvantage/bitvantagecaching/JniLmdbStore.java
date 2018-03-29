@@ -31,14 +31,14 @@ import org.fusesource.lmdbjni.Transaction;
  *
  * @author Matt Laquidara
  */
-public class LmdbStore<K extends Key, V> implements Store<K, V> {
+public class JniLmdbStore<K extends Key, V> implements Store<K, V> {
 
     protected final Env env;
     protected final Database db;
     private final Path path;
     private final Serializer<V> serializer;
 
-    public LmdbStore(final Path path, final Serializer<V> serializer) {
+    public JniLmdbStore(final Path path, final Serializer<V> serializer) {
         env = new Env();
         env.setMapSize(107374182400L);
         env.open(path.toString());
@@ -90,7 +90,6 @@ public class LmdbStore<K extends Key, V> implements Store<K, V> {
 
     @Override
     public boolean isEmpty() throws InterruptedException {
-        final Database db = env.openDatabase();
         final Transaction tx = env.createReadTransaction();
         final Cursor cursor = db.openCursor(tx);
 

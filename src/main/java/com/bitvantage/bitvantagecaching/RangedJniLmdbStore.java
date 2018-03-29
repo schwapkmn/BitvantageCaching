@@ -30,12 +30,12 @@ import org.fusesource.lmdbjni.Transaction;
  *
  * @author Matt Laquidara
  */
-public class RangedLmdbStore<K extends RangedKey<K>, V> extends LmdbStore<K, V>
+public class RangedJniLmdbStore<K extends RangedKey<K>, V> extends JniLmdbStore<K, V>
         implements RangedStore<K, V> {
 
     private final KeyMaterializer<K> keyMaterializer;
 
-    public RangedLmdbStore(final Path path,
+    public RangedJniLmdbStore(final Path path,
                            final KeyMaterializer<K> keyMaterializer,
                            final Serializer<V> serializer) {
         super(path, serializer);
