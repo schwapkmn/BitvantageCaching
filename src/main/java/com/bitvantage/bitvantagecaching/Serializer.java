@@ -21,8 +21,8 @@ package com.bitvantage.bitvantagecaching;
  */
 public interface Serializer<V> {
     
-    byte[] getBytes(V value);
+    byte[] getBytes(V value) throws BitvantageStoreException;
     
-    V getValue(byte[] bytes);
+    V getValue(byte[] bytes) throws BitvantageStoreException;
     
 }

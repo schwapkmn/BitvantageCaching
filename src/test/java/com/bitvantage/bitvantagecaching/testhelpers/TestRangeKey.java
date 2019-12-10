@@ -13,26 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching;
+package com.bitvantage.bitvantagecaching.testhelpers;
 
-import com.bitvantage.bitvantagecaching.Serializer;
+import com.bitvantage.bitvantagecaching.RangeKey;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
+@RequiredArgsConstructor
+@EqualsAndHashCode
+public class TestRangeKey implements RangeKey<TestRangeKey> {
 
-    private static final byte[] NO_BYTES = new byte[0];
-    
+    @Getter
+    private final String value;
+
     @Override
-    public byte[] getBytes(final Byte value) {
-        return NO_BYTES;
+    public TestRangeKey getRangeMin() {
+        return new TestRangeKey("a");
     }
 
     @Override
-    public Byte getValue(byte[] bytes) {
-        return 0;
+    public TestRangeKey getRangeMax() {
+        return new TestRangeKey("z");
     }
-    
+
+    @Override
+    public int compareTo(final TestRangeKey o) {
+        return value.compareTo(o.value);
+    }
+
 }

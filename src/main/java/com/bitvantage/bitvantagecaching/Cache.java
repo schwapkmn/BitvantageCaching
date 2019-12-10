@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2019 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,41 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import java.util.Map;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
+
 /**
- * Interface for a key-value cache.
  *
  * @author Matt Laquidara
  */
-public interface Cache<K extends Key, V> {
-
-    V get(K key) throws InterruptedException, BitvantageStoreException;
-
-    void put(K key, V value) throws InterruptedException,
-            BitvantageStoreException;
-
-    void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException;
+@RequiredArgsConstructor
+public class Cache<P extends PartitionKey, V> {
     
-    void close();
-
+    private final Store<P, V> store;
+    
+    public CacheResult<P, V> get(final Set<P> keys)
+            throws BitvantageStoreException, InterruptedException {
+        final ImmutableMap.Builder<P, V> cachedBuilder = ImmutableMap.builder();
+        final ImmutableSet.Builder<P> uncachedBuilder = ImmutableSet.builder();
+        
+        for (final P key : keys) {
+            final V value = store.get(key);
+            if (value == null) {
+                uncachedBuilder.add(key);
+            } else {
+                cachedBuilder.put(key, value);
+            }
+        }
+        
+        return new CacheResult(cachedBuilder.build(), uncachedBuilder.build());
+    }
+    
+    public void put(final Map<P, V> contents) throws BitvantageStoreException,
+            InterruptedException {
+        store.putAll(contents);
+    }
+    
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Matt Laquidara.
+ * Copyright 2017 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,16 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.bitvantage.bitvantagecaching.Serializer;
-
 /**
+ * Interface for a key-value cache.
  *
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
+public interface TwoLevelCache<P extends PartitionKey, V> {
 
-    private static final byte[] NO_BYTES = new byte[0];
-    
-    @Override
-    public byte[] getBytes(final Byte value) {
-        return NO_BYTES;
-    }
+    V get(P key) throws InterruptedException, BitvantageStoreException;
 
-    @Override
-    public Byte getValue(byte[] bytes) {
-        return 0;
-    }
+    void put(P key, V value) throws InterruptedException,
+            BitvantageStoreException;
     
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Matt Laquidara.
+ * Copyright 2019 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,18 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.bitvantage.bitvantagecaching.Serializer;
+import java.util.Map;
+import java.util.Set;
+import lombok.Value;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
-
-    private static final byte[] NO_BYTES = new byte[0];
+@Value
+public class CacheResult<P extends PartitionKey, V> {
     
-    @Override
-    public byte[] getBytes(final Byte value) {
-        return NO_BYTES;
-    }
-
-    @Override
-    public Byte getValue(byte[] bytes) {
-        return 0;
-    }
+    private final Map<P, V> cachedResults;
+    private final Set<P> uncachedKeys; 
     
 }

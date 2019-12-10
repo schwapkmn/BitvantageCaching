@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,25 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import lombok.Value;
+import com.bitvantage.bitvantagecaching.Serializer;
+import java.nio.ByteBuffer;
 
 /**
  *
  * @author Matt Laquidara
  */
-@Value
-public class StringKey extends RangedKey<StringKey> {
-    
-    private final String base;
-    private final String range;
+public class DoubleSerializer implements Serializer<Double> {
 
     @Override
-    public StringKey getRangeMin() {
-        return new StringKey(base, "a");
+    public byte[] getBytes(final Double value) {
+        final byte[] bytes = new byte[8];
+        ByteBuffer.wrap(bytes).putDouble(value);
+        return bytes;
     }
 
     @Override
-    public StringKey getRangeMax() {
-        return new StringKey(base, "z");
-    }
-
-    @Override
-    public String getKeyString() {
-        return String.format("%s:%s", base, range);
+    public Double getValue(byte[] bytes) {
+        return ByteBuffer.wrap(bytes).getDouble();
     }
 
 }

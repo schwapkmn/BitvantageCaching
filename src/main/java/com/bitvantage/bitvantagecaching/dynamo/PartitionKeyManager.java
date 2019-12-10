@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching.testhelpers;
+package com.bitvantage.bitvantagecaching.dynamo;
 
-import com.bitvantage.bitvantagecaching.Key;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.bitvantage.bitvantagecaching.PartitionKey;
 
 /**
  *
  * @author Matt Laquidara
  */
-@RequiredArgsConstructor
-public class TestKey implements Key {
+public interface PartitionKeyManager<P extends PartitionKey> {
     
-    @Getter
-    final String keyString;
-
+    String getKey(P key);
+    
+    String getKeyName();
+    
 }

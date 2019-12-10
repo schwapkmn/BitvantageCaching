@@ -15,6 +15,7 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import com.bitvantage.bitvantagecaching.Serializer;
 import com.google.common.primitives.Ints;
 
 /**

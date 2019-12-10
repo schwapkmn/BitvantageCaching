@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching.mocks;
+package com.bitvantage.bitvantagecaching.testhelpers;
 
-import com.bitvantage.bitvantagecaching.Cache;
-import com.bitvantage.bitvantagecaching.Key;
-import java.util.Map;
+import com.bitvantage.bitvantagecaching.PartitionKey;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -25,27 +25,10 @@ import lombok.RequiredArgsConstructor;
  * @author Matt Laquidara
  */
 @RequiredArgsConstructor
-public class MapCache<K extends Key, V> implements Cache<K, V> {
-    
-    private final Map<K, V> map;
+@EqualsAndHashCode
+public class TestPartitionKey implements PartitionKey {
 
-    @Override
-    public V get(K key) {
-        return map.get(key);
-    }
+    @Getter
+    private final String value;
 
-    @Override
-    public void put(K key, V value) {
-        map.put(key, value);
-    }
-
-    @Override
-    public void invalidate(K key) {
-        map.remove(key);
-    }
-
-    @Override
-    public void close() {
-    }
-    
 }

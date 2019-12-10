@@ -15,21 +15,39 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import java.util.Map;
 import java.util.NavigableMap;
 
 /**
  *
  * @author Matt Laquidara
  */
-public interface RangedStore<K extends RangedKey, V> extends Store<K, V> {
+public interface RangedStore<P extends PartitionKey, R extends RangeKey<R>, V> {
 
-    NavigableMap<K, V> getValuesInRange(K min, K max) 
+    NavigableMap<R, V> getValuesInRange(P partition, R min, R max)
             throws InterruptedException, BitvantageStoreException;
 
-    NavigableMap<K, V> getValuesAbove(K min) throws InterruptedException,
-            BitvantageStoreException;
+    NavigableMap<R, V> getValuesAbove(P partition, R min)
+            throws InterruptedException, BitvantageStoreException;
 
-    NavigableMap<K, V> getValuesBelow(K max) throws InterruptedException,
-            BitvantageStoreException;
+    NavigableMap<R, V> getValuesBelow(P partition, R max)
+            throws InterruptedException, BitvantageStoreException;
+
+    NavigableMap<R, V> getNextValues(P partition, R min, int count)
+            throws InterruptedException, BitvantageStoreException;
+
+    NavigableMap<R, V> getHeadValues(P partition, int count)
+            throws InterruptedException, BitvantageStoreException;
+
+    NavigableMap<R, V> getPartition(P partition)
+            throws InterruptedException, BitvantageStoreException;
+
+    void put(P partition, R rangeValue, V value)
+            throws BitvantageStoreException, InterruptedException;
+
+    void putAll(P partition, Map<R, V> entries)
+            throws BitvantageStoreException, InterruptedException;
+
+    boolean isEmpty();
 
 }

@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  * @author Matt Laquidara
  */
 @RequiredArgsConstructor
-public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
+public class UnboundedCache<K extends PartitionKey, V> implements TwoLevelCache<K, V> {
 
     private final Store<K, V> store;
     private int hits = 0;
@@ -45,17 +45,6 @@ public class UnboundedCache<K extends Key, V> implements Cache<K, V> {
             BitvantageStoreException {
         puts++;
         store.put(key, value);
-    }
-
-    @Override
-    public void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException {
-        store.delete(key);
-    }
-
-    @Override
-    public void close() {
-        store.close();
     }
 
 }

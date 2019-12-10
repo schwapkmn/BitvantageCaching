@@ -24,10 +24,10 @@ import lombok.RequiredArgsConstructor;
  * @author Matt Laquidara
  */
 @RequiredArgsConstructor
-public class CachingStore<K extends Key, V> implements Store<K, V> {
+public class TwoLevelCachingStore<K extends PartitionKey, V> implements Store<K, V> {
 
     private final Store<K, V> store;
-    protected final Cache<K, V> cache;
+    protected final TwoLevelCache<K, V> cache;
 
     @Override
     public boolean containsKey(K key) throws InterruptedException,
@@ -52,43 +52,26 @@ public class CachingStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(K key, V value) throws InterruptedException, 
+    public void put(K key, V value) throws InterruptedException,
             BitvantageStoreException {
         store.put(key, value);
     }
 
     @Override
-    public void delete(K key) throws InterruptedException,
-            BitvantageStoreException {
-        cache.invalidate(key);
-        store.delete(key);
-    }
-
-    @Override
-    public boolean isEmpty() throws InterruptedException, 
+    public boolean isEmpty() throws InterruptedException,
             BitvantageStoreException {
         return store.isEmpty();
     }
 
     @Override
-    public Multiset<V> getValues() throws InterruptedException, 
+    public Map<K, V> getAll() throws InterruptedException,
             BitvantageStoreException {
-        return store.getValues();
+        return store.getAll();
     }
 
     @Override
-    public int getMaxReaders() {
-        return store.getMaxReaders();
-    }
-
-    @Override
-    public void close() {
-        store.close();
-        cache.close();
-    }
-
-    @Override
-    public void putAll(Map<K, V> entries) {
+    public void putAll(Map<K, V> entries) throws InterruptedException,
+            BitvantageStoreException {
         store.putAll(entries);
     }
 

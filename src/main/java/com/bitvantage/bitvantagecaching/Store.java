@@ -15,7 +15,6 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.google.common.collect.Multiset;
 import java.util.Map;
 
 /**
@@ -23,7 +22,7 @@ import java.util.Map;
  * 
  * @author Matt Laquidara
  */
-public interface Store<K extends Key, V> {
+public interface Store<K extends PartitionKey, V> {
 
     boolean containsKey(K key) throws BitvantageStoreException, 
             InterruptedException;
@@ -31,20 +30,15 @@ public interface Store<K extends Key, V> {
     V get(K key) throws BitvantageStoreException, InterruptedException;
 
     void put(K key, V value) throws BitvantageStoreException,
-            InterruptedException ;
+            InterruptedException;
     
-    void putAll(final Map<K, V> entries);
-
-    void delete(K key) throws BitvantageStoreException,
+    void putAll(Map<K, V> entries) throws BitvantageStoreException,
             InterruptedException;
 
-    Multiset<V> getValues() throws BitvantageStoreException, 
+    Map<K, V> getAll() throws BitvantageStoreException, 
             InterruptedException;
 
     boolean isEmpty() throws BitvantageStoreException, 
             InterruptedException;
-
-    int getMaxReaders();
     
-    void close();
 }

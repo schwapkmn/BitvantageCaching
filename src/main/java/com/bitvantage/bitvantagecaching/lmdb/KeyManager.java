@@ -13,26 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching;
+package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.bitvantage.bitvantagecaching.Serializer;
+import com.bitvantage.bitvantagecaching.BitvantageStoreException;
+import com.bitvantage.bitvantagecaching.PartitionKey;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
+public interface KeyManager<P extends PartitionKey> {
 
-    private static final byte[] NO_BYTES = new byte[0];
-    
-    @Override
-    public byte[] getBytes(final Byte value) {
-        return NO_BYTES;
-    }
+    String createKeyString(final P partition);
 
-    @Override
-    public Byte getValue(byte[] bytes) {
-        return 0;
-    }
-    
+    P materialize(final String keyString) throws BitvantageStoreException;
 }

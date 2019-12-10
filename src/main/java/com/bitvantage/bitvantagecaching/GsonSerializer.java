@@ -16,6 +16,7 @@
 package com.bitvantage.bitvantagecaching;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -25,11 +26,16 @@ import java.nio.charset.StandardCharsets;
 public class GsonSerializer<V> implements Serializer<V> {
 
     private final Gson gson;
-    private final Class<V> valueClass;
+    private final TypeToken typeToken;
 
     public GsonSerializer(final Class<V> valueClass) {
         gson = new Gson();
-        this.valueClass = valueClass;
+        typeToken = TypeToken.get(valueClass);
+    }
+
+    public GsonSerializer(final TypeToken typeToken) {
+        gson = new Gson();
+        this.typeToken = typeToken;
     }
 
     @Override
@@ -41,7 +47,7 @@ public class GsonSerializer<V> implements Serializer<V> {
     @Override
     public V getValue(byte[] bytes) {
         final String json = new String(bytes, StandardCharsets.UTF_8);
-        return gson.fromJson(json, valueClass);
+        return gson.fromJson(json, typeToken.getType());
     }
 
 }

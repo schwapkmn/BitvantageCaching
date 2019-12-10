@@ -22,14 +22,16 @@ import java.util.SortedMap;
  *
  * @author Matt Laquidara
  */
-public interface RangedCache<K extends RangedKey<K>, V> extends Cache<K, V> {
+public interface RangedCache<P extends PartitionKey, R extends RangeKey<R>, V> {
 
-    public RangeMap<K, RangeStatus<K, V>> getRange(final K min, final K max)
+    public RangeMap<R, RangeStatus<R, V>> getRange(P partition, R min, R max)
             throws InterruptedException, BitvantageStoreException;
 
-    public void putRange(
-            final K requestedMin, final K requestedMax,
-            final SortedMap<K, V> values)
+    public void putRange(P partition, R requestedMin, R requestedMax,
+                         SortedMap<R, V> values)
+            throws InterruptedException, BitvantageStoreException;
+
+    public void put(P partition, R range, V value)
             throws InterruptedException, BitvantageStoreException;
 
 }

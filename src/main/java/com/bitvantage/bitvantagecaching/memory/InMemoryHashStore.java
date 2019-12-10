@@ -13,48 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching.mocks;
+package com.bitvantage.bitvantagecaching.memory;
 
-import com.bitvantage.bitvantagecaching.Key;
+import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.Store;
-import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.Multiset;
+import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author Matt Laquidara
  */
-@RequiredArgsConstructor
-public class MapStore<K extends Key, V> implements Store<K, V> {
+public class InMemoryHashStore<K extends PartitionKey, V> implements Store<K, V> {
 
-    private final Map<String, V> map;
+    private final Map<K, V> map;
+
+    public InMemoryHashStore() {
+        map = new ConcurrentHashMap<>();
+    }
 
     @Override
     public boolean containsKey(K key) {
-        return map.containsKey(key.getKeyString());
+        return map.containsKey(key);
     }
 
     @Override
     public V get(K key) {
-        return map.get(key.getKeyString());
+        return map.get(key);
     }
 
     @Override
     public void put(K key, V value) {
-        map.put(key.getKeyString(), value);
-    }
-
-    @Override
-    public void delete(K key) {
-        map.remove(key.getKeyString());
-    }
-
-    @Override
-    public Multiset<V> getValues() {
-        return ImmutableMultiset.copyOf(map.values());
-
+        map.put(key, value);
     }
 
     @Override
@@ -63,18 +54,13 @@ public class MapStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public int getMaxReaders() {
-        return Integer.MAX_VALUE;
-    }
-
-    @Override
-    public void close() {
+    public Map<K, V> getAll() {
+        return ImmutableMap.copyOf(map);
     }
 
     @Override
     public void putAll(final Map<K, V> entries) {
-        entries.entrySet().stream().forEach(entry -> map.put(
-                entry.getKey().getKeyString(), entry.getValue()));
+        map.putAll(entries);
     }
 
 }

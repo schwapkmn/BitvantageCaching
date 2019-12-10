@@ -16,23 +16,22 @@
 package com.bitvantage.bitvantagecaching;
 
 import com.bitvantage.bitvantagecaching.Serializer;
+import java.nio.charset.StandardCharsets;
 
 /**
- *
+ * Serializes a string by representing it in UTF-8 byte representation.
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
+public class StringSerializer implements Serializer<String> {
 
-    private static final byte[] NO_BYTES = new byte[0];
-    
     @Override
-    public byte[] getBytes(final Byte value) {
-        return NO_BYTES;
+    public byte[] getBytes(final String value) {
+        return value.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
-    public Byte getValue(byte[] bytes) {
-        return 0;
+    public String getValue(final byte[] bytes) {
+        return new String(bytes, StandardCharsets.UTF_8);
     }
     
 }

@@ -22,92 +22,93 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedMap;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class UnboundedRangedCache<K extends RangedKey<K>, V>
-        implements RangedCache<K, V> {
+public class UnboundedRangedCache<P extends PartitionKey, R extends RangeKey<R>, V>
+        implements RangedCache<P, R, V> {
 
-    private final TreeRangeSet<K> requestedRanges;
-    private final RangedStore<K, V> store;
+    private final Map<P, TreeRangeSet<R>> partitionedRequestedRanges;
+    private final RangedStore<P, R, V> store;
 
     public UnboundedRangedCache(final RangedStore store) {
         this.store = store;
-        requestedRanges = TreeRangeSet.create();
+        partitionedRequestedRanges = new HashMap<>();
     }
 
     @Override
-    public RangeMap<K, RangeStatus<K, V>> getRange(final K min, final K max)
+    public synchronized RangeMap<R, RangeStatus<R, V>> getRange(
+            final P partition, final R min, final R max)
             throws InterruptedException, BitvantageStoreException {
-        final Range<K> requestRange = Range.closed(min, max);
+        final Range<R> requestRange = Range.closed(min, max);
+
+        final TreeRangeSet<R> requestedRanges
+                = partitionedRequestedRanges.getOrDefault(
+                        partition, TreeRangeSet.create());
+
+        final RangeMap<R, RangeStatus<R, V>> result;
         if (requestedRanges.encloses(requestRange)) {
-            final SortedMap<K, V> values = ImmutableSortedMap.copyOf(
-                    store.getValuesInRange(min, max));
-            return ImmutableRangeMap.of(requestRange,
-                                        new RangeStatus(true, values));
+            final SortedMap<R, V> values = ImmutableSortedMap.copyOf(
+                    store.getValuesInRange(partition, min, max));
+            result = ImmutableRangeMap.of(requestRange,
+                                          new RangeStatus(true, values));
         } else {
-            final RangeSet<K> cachedSubRanges;
-            final RangeSet<K> uncachedSubRanges;
-            synchronized (this) {
-                cachedSubRanges = ImmutableRangeSet.copyOf(
-                        requestedRanges.subRangeSet(requestRange));
-                uncachedSubRanges = ImmutableRangeSet.copyOf(
-                        requestedRanges.complement().subRangeSet(requestRange));
-            }
-            final ImmutableRangeMap.Builder<K, RangeStatus<K, V>> rangeMapBuilder
+            final RangeSet<R> cachedSubRanges;
+            final RangeSet<R> uncachedSubRanges;
+
+            cachedSubRanges = ImmutableRangeSet.copyOf(
+                    requestedRanges.subRangeSet(requestRange));
+            uncachedSubRanges = ImmutableRangeSet.copyOf(
+                    requestedRanges.complement().subRangeSet(requestRange));
+
+            final ImmutableRangeMap.Builder<R, RangeStatus<R, V>> rangeMapBuilder
                     = ImmutableRangeMap.builder();
-            for (final Range<K> subRange : cachedSubRanges.asRanges()) {
-                final SortedMap<K, V> values = ImmutableSortedMap.copyOf(
-                        store.getValuesInRange(subRange.lowerEndpoint(),
+            for (final Range<R> subRange : cachedSubRanges.asRanges()) {
+                final SortedMap<R, V> values = ImmutableSortedMap.copyOf(
+                        store.getValuesInRange(partition,
+                                               subRange.lowerEndpoint(),
                                                subRange.upperEndpoint()));
                 rangeMapBuilder.put(subRange, new RangeStatus(true, values));
             }
-            for (final Range<K> subRange : uncachedSubRanges.asRanges()) {
+            for (final Range<R> subRange : uncachedSubRanges.asRanges()) {
                 rangeMapBuilder.put(subRange, new RangeStatus(false, null));
             }
-            return rangeMapBuilder.build();
+            result = rangeMapBuilder.build();
         }
+        partitionedRequestedRanges.putIfAbsent(partition, requestedRanges);
+        return result;
     }
 
     @Override
-    public void putRange(
-            final K requestedMin, K requestedMax, final SortedMap<K, V> values)
+    public synchronized void putRange(final P partition, final R requestedMin,
+                                      final R requestedMax,
+                                      final SortedMap<R, V> values)
             throws InterruptedException, BitvantageStoreException {
-        store.putAll(values);
-        synchronized (this) {
-            requestedRanges.add(Range.closed(requestedMin, requestedMax));
-        }
+        store.putAll(partition, values);
+        final TreeRangeSet<R> requestedRanges
+                = partitionedRequestedRanges.getOrDefault(
+                        partition, TreeRangeSet.create());
+        requestedRanges.add(Range.closed(requestedMin, requestedMax));
+        partitionedRequestedRanges.putIfAbsent(partition, requestedRanges);
+
     }
 
     @Override
-    public V get(K key) throws InterruptedException, BitvantageStoreException {
-        return store.get(key);
-    }
+    public synchronized void put(final P partition, final R range,
+                                 final V value)
+            throws InterruptedException, BitvantageStoreException {
+        store.put(partition, range, value);
+        final TreeRangeSet<R> requestedRanges
+                = partitionedRequestedRanges.getOrDefault(
+                        partition, TreeRangeSet.create());
+        requestedRanges.add(Range.closed(range, range));
+        partitionedRequestedRanges.putIfAbsent(partition, requestedRanges);
 
-    @Override
-    public void put(K key, V value) throws InterruptedException,
-            BitvantageStoreException {
-        store.put(key, value);
-        synchronized (this) {
-            requestedRanges.add(Range.singleton(key));
-        }
-    }
-
-    @Override
-    public void invalidate(K key) throws InterruptedException,
-            BitvantageStoreException {
-        synchronized (this) {
-            requestedRanges.remove(Range.singleton(key));
-        }
-        store.delete(key);
-    }
-
-    @Override
-    public void close() {
-        store.close();
     }
 
 }

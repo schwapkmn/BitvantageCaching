@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching;
+package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.Multiset;
+import com.bitvantage.bitvantagecaching.Serializer;
+import com.bitvantage.bitvantagecaching.BitvantageStoreException;
+import com.bitvantage.bitvantagecaching.Store;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Map;
+import com.bitvantage.bitvantagecaching.PartitionKey;
+import com.google.common.collect.ImmutableMap;
 import org.lmdbjava.Cursor;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
@@ -31,24 +34,25 @@ import org.lmdbjava.Txn;
  *
  * @author Matt Laquidara
  */
-public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
+public class NativeLmdbStore<K extends PartitionKey, V> implements Store<K, V> {
 
-    protected final Env<ByteBuffer> env;
-    protected final Dbi<ByteBuffer> db;
-    private final Path path;
+    private final Env<ByteBuffer> env;
+    private final Dbi<ByteBuffer> db;
+    private final KeyManager<K> keyManager;
     private final Serializer<V> serializer;
 
-    public NativeLmdbStore(final Path path, final Serializer<V> serializer,
-                           final int readers) {
+    public NativeLmdbStore(final Path path, final KeyManager<K> keyManager,
+                           final Serializer<V> serializer, final int readers) {
         env = Env.create().setMaxDbs(1).setMapSize(107374182400L)
                 .setMaxReaders(readers).open(path.toFile());
         db = env.openDbi("DB", DbiFlags.MDB_CREATE);
-        this.path = path;
+        this.keyManager = keyManager;
         this.serializer = serializer;
     }
 
     @Override
-    public V get(final K key) throws InterruptedException {
+    public V get(final K key) 
+            throws InterruptedException, BitvantageStoreException {
         final Txn tx = env.txnRead();
         try {
             final ByteBuffer keyBytes = getKeyBytes(key);
@@ -67,7 +71,8 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void put(final K key, final V value) throws InterruptedException {
+    public void put(final K key, final V value)
+            throws InterruptedException, BitvantageStoreException {
         final ByteBuffer keyBytes = getKeyBytes(key);
         final ByteBuffer valueBytes = getValueBytes(value);
         try {
@@ -77,7 +82,8 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void putAll(final Map<K, V> entries) {
+    public void putAll(final Map<K, V> entries)
+            throws BitvantageStoreException {
         final Txn tx = env.txnWrite();
         try {
             for (Map.Entry<K, V> entry : entries.entrySet()) {
@@ -106,16 +112,16 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public Multiset<V> getValues() throws InterruptedException {
+    public Map<K, V> getAll() throws InterruptedException, 
+            BitvantageStoreException {
         final Txn tx = env.txnRead();
-        final ImmutableMultiset.Builder<V> builder = ImmutableMultiset
-                .builder();
+        final ImmutableMap.Builder<K, V> builder = ImmutableMap.builder();
         final Cursor<ByteBuffer> cursor = db.openCursor(tx);
         try {
             boolean hasNext = cursor.first();
 
             while (hasNext) {
-                builder.add(getValue(cursor.val()));
+                builder.put(getKey(cursor.key()), getValue(cursor.val()));
                 hasNext = cursor.next();
             }
             return builder.build();
@@ -127,22 +133,14 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
     }
 
     @Override
-    public void close() {
-    }
-
-    @Override
-    public boolean containsKey(K key) throws InterruptedException {
+    public boolean containsKey(K key) 
+            throws InterruptedException, BitvantageStoreException {
         return get(key) != null;
     }
 
-    @Override
-    public void delete(K key) throws InterruptedException {
-        db.delete(getKeyBytes(key));
-    }
-
-    protected ByteBuffer getKeyBytes(final K key) {
-        final byte[] byteArray
-                = key.getKeyString().getBytes(StandardCharsets.UTF_8);
+    private ByteBuffer getKeyBytes(final K key) {
+        final byte[] byteArray = keyManager.createKeyString(key).getBytes(
+                StandardCharsets.UTF_8);
 
         final ByteBuffer buffer = ByteBuffer.allocateDirect(byteArray.length);
         buffer.put(byteArray).flip();
@@ -150,7 +148,8 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
 
     }
 
-    protected ByteBuffer getValueBytes(final V value) {
+    private ByteBuffer getValueBytes(final V value) 
+            throws BitvantageStoreException {
         final byte[] byteArray = serializer.getBytes(value);
 
         final ByteBuffer buffer = ByteBuffer.allocateDirect(byteArray.length);
@@ -158,15 +157,16 @@ public class NativeLmdbStore<K extends Key, V> implements Store<K, V> {
         return buffer;
     }
 
-    protected V getValue(final ByteBuffer bytes) {
+    private V getValue(final ByteBuffer bytes) throws BitvantageStoreException {
         final byte[] byteArray = new byte[bytes.capacity()];
         bytes.get(byteArray, 0, bytes.capacity());
         return serializer.getValue(byteArray);
     }
 
-    @Override
-    public int getMaxReaders() {
-        return env.info().maxReaders;
+    private K getKey(final ByteBuffer bytes) throws BitvantageStoreException {
+        final byte[] byteArray = new byte[bytes.capacity()];
+        final String keyText = new String(byteArray, StandardCharsets.UTF_8);
+        return keyManager.materialize(keyText);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Matt Laquidara.
+ * Copyright 2017 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching;
+package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.bitvantage.bitvantagecaching.Serializer;
+import com.bitvantage.bitvantagecaching.BitvantageStoreException;
+import com.bitvantage.bitvantagecaching.PartitionKey;
+import com.bitvantage.bitvantagecaching.RangeKey;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
+public interface RangedKeyManager<P extends PartitionKey, R extends RangeKey> {
 
-    private static final byte[] NO_BYTES = new byte[0];
+    String createKeyStub(final P partition);
     
-    @Override
-    public byte[] getBytes(final Byte value) {
-        return NO_BYTES;
-    }
+    String createKeyString(final P partition, final R range);
 
-    @Override
-    public Byte getValue(byte[] bytes) {
-        return 0;
-    }
-    
+    Keys<P, R> materialize(final String keyString) 
+            throws BitvantageStoreException;
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching;
+package com.bitvantage.bitvantagecaching.lmdb;
+
+import lombok.Value;
 
 /**
  *
  * @author Matt Laquidara
  */
-public interface KeyMaterializer<K extends Key> {
-
-    public K materialize(final String keyString)
-            throws BitvantageStoreException;
-
+@Value
+public class Keys<P, R> {
+    private final P partition;
+    private final R range;
 }

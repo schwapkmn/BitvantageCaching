@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Matt Laquidara.
+ * Copyright 2018 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.bitvantage.bitvantagecaching;
+package com.bitvantage.bitvantagecaching.dynamo;
+
+import com.amazonaws.services.dynamodbv2.document.Item;
+import com.bitvantage.bitvantagecaching.BitvantageStoreException;
+import com.bitvantage.bitvantagecaching.PartitionKey;
 
 /**
  *
  * @author Matt Laquidara
  */
-public abstract class RangedKey<K extends RangedKey> implements Key,
-        Comparable<RangedKey> {
+public interface DynamoStoreSerializer<P extends PartitionKey, V> {
 
-    public abstract K getRangeMin();
+    String getKey(P key);
 
-    public abstract K getRangeMax();
+    String getKeyName();
 
-    @Override
-    public int compareTo(final RangedKey other) {
-        return getKeyString().compareTo(other.getKeyString());
-    }
+    String getValueName();
+
+    Item serialize(P partition, V value);
+
+    V deserializeValue(Item item);
+
+    P deserializeKey(Item item) throws BitvantageStoreException;
 
 }
