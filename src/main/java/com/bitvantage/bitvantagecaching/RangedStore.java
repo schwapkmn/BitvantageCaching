@@ -50,4 +50,7 @@ public interface RangedStore<P extends PartitionKey, R extends RangeKey<R>, V> {
 
     boolean isEmpty();
 
+    public boolean putIfAbsent(P partition, R range, V value)
+            throws BitvantageStoreException, InterruptedException;
+
 }

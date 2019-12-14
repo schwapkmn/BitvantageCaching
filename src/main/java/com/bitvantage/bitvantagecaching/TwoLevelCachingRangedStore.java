@@ -115,4 +115,10 @@ public class TwoLevelCachingRangedStore<P extends PartitionKey, R extends RangeK
         return store.getPartition(partition);
     }
 
+    @Override
+    public boolean putIfAbsent(P partitionKey, R rangeKey, V specifier) 
+            throws BitvantageStoreException, InterruptedException {
+        return store.putIfAbsent(partitionKey, rangeKey, specifier);
+    }
+
 }

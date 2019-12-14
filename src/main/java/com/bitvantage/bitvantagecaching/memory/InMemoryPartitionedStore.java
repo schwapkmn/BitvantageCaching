@@ -30,12 +30,12 @@ import java.util.TreeMap;
  *
  * @author Matt Laquidara
  */
-public class InMemorySortedStore<P extends PartitionKey, R extends RangeKey<R>, V>
+public class InMemoryPartitionedStore<P extends PartitionKey, R extends RangeKey<R>, V>
         implements RangedStore<P, R, V> {
 
     final Map<P, NavigableMap<R, V>> partitionedMap;
 
-    public InMemorySortedStore() {
+    public InMemoryPartitionedStore() {
         partitionedMap = new HashMap<>();
     }
 
@@ -66,7 +66,7 @@ public class InMemorySortedStore<P extends PartitionKey, R extends RangeKey<R>, 
         final NavigableMap<R, V> map = partitionedMap.getOrDefault(
                 partition, new TreeMap<>());
         map.put(key, value);
-        partitionedMap.putIfAbsent(partition, map);
+        partitionedMap.put(partition, map);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class InMemorySortedStore<P extends PartitionKey, R extends RangeKey<R>, 
         final NavigableMap<R, V> map = partitionedMap.getOrDefault(
                 partition, new TreeMap<>());
         map.putAll(values);
-        partitionedMap.putIfAbsent(partition, map);
+        partitionedMap.put(partition, map);
     }
 
     @Override
@@ -112,9 +112,31 @@ public class InMemorySortedStore<P extends PartitionKey, R extends RangeKey<R>, 
     }
 
     @Override
-    public synchronized NavigableMap<R, V> getPartition(final P partition) 
+    public synchronized NavigableMap<R, V> getPartition(final P partition)
             throws InterruptedException, BitvantageStoreException {
         return partitionedMap.getOrDefault(partition, new TreeMap<>());
+    }
+
+    @Override
+    public synchronized boolean putIfAbsent(
+            final P partitionKey, final R rangeKey, final V specifier)
+            throws BitvantageStoreException, InterruptedException {
+        final boolean wasAbsent;
+        if (partitionedMap.containsKey(partitionKey)) {
+            final NavigableMap<R, V> partition
+                    = partitionedMap.get(partitionKey);
+            if (partition.containsKey(rangeKey)) {
+                wasAbsent = false;
+            } else {
+                wasAbsent = true;
+            }
+        } else {
+            wasAbsent = true;
+        }
+        if (wasAbsent) {
+            put(partitionKey, rangeKey, specifier);
+        }
+        return wasAbsent;
     }
 
 }

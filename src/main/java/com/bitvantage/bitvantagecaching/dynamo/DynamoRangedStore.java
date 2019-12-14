@@ -18,15 +18,18 @@ package com.bitvantage.bitvantagecaching.dynamo;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.document.BatchWriteItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
+import com.amazonaws.services.dynamodbv2.document.Expected;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
+import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.RangeKeyCondition;
 import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
+import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
@@ -235,6 +238,20 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
         final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey);
 
         return executeQuery(querySpec);
+    }
+
+    @Override
+    public boolean putIfAbsent(final P partition, final R range,
+                               final V value)
+            throws BitvantageStoreException, InterruptedException {
+        final Item item = serializer.serialize(partition, range, value);
+        try {
+            table.putItem(item, new Expected(hashKeyName).notExist(),
+                          new Expected(rangeKeyName).notExist());
+        } catch (final ConditionalCheckFailedException e) {
+            return false;
+        }
+        return true;
     }
 
 }

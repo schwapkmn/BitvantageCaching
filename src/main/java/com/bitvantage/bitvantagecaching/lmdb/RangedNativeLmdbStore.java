@@ -33,6 +33,7 @@ import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
 import org.lmdbjava.KeyRange;
 import org.lmdbjava.KeyRangeType;
+import org.lmdbjava.PutFlags;
 import org.lmdbjava.Txn;
 
 /**
@@ -163,9 +164,9 @@ public class RangedNativeLmdbStore<P extends PartitionKey, R extends RangeKey<R>
     }
 
     @Override
-    public void put(final P partition, final R rangeValue, final V value)
+    public void put(final P partition, final R range, final V value)
             throws BitvantageStoreException, InterruptedException {
-        final ByteBuffer keyBytes = getKeyBytes(partition, rangeValue);
+        final ByteBuffer keyBytes = getKeyBytes(partition, range);
         final ByteBuffer valueBytes = getValueBytes(value);
         try {
             db.put(keyBytes, valueBytes);
@@ -210,7 +211,7 @@ public class RangedNativeLmdbStore<P extends PartitionKey, R extends RangeKey<R>
         final String keyString = new String(byteArray, StandardCharsets.UTF_8);
         return keyManager.materialize(keyString).getRange();
     }
-    
+
     private P getPartitionKey(final ByteBuffer bytes)
             throws BitvantageStoreException {
         final byte[] byteArray = new byte[bytes.capacity()];
@@ -280,6 +281,23 @@ public class RangedNativeLmdbStore<P extends PartitionKey, R extends RangeKey<R>
             return builder.build();
         } finally {
             iterator.close();
+            tx.commit();
+            tx.close();
+        }
+    }
+
+    @Override
+    public boolean putIfAbsent(final P partition, final R range,
+                               final V value)
+            throws BitvantageStoreException, InterruptedException {
+        final ByteBuffer keyBytes = getKeyBytes(partition, range);
+        final ByteBuffer valueBytes = getValueBytes(value);
+        final Txn<ByteBuffer> tx = env.txnRead();
+        try {
+            final boolean wasAbsent = db.put(tx, keyBytes, valueBytes,
+                                             PutFlags.MDB_NOOVERWRITE);
+            return wasAbsent;
+        } finally {
             tx.commit();
             tx.close();
         }
