@@ -29,8 +29,6 @@ import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.Store;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.Multiset;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
