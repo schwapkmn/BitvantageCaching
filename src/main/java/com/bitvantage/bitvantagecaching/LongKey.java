@@ -15,6 +15,7 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -29,7 +30,8 @@ public class LongKey implements RangeKey<LongKey> {
     private static final LongKey MAX
             = new LongKey(0xFFFFFFFFFFFFFFFFL);
 
-    private final long hash;
+    @Getter
+    private final long value;
 
     @Override
     public LongKey getRangeMin() {
@@ -43,7 +45,7 @@ public class LongKey implements RangeKey<LongKey> {
 
     @Override
     public int compareTo(final LongKey o) {
-        return Long.compare(hash, o.hash);
+        return Long.compare(value, o.value);
     }
 
 }

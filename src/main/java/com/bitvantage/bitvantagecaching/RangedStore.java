@@ -50,6 +50,15 @@ public interface RangedStore<P extends PartitionKey, R extends RangeKey<R>, V> {
 
     boolean isEmpty();
 
+    /**
+     * Conditionally put an item in the store.
+     * @param partition The partition in which to place the item.
+     * @param range The range within the partition.
+     * @param value The value to put in the store.
+     * @return true if the call did put, false if an item was present.
+     * @throws BitvantageStoreException
+     * @throws InterruptedException 
+     */
     public boolean putIfAbsent(P partition, R range, V value)
             throws BitvantageStoreException, InterruptedException;
 

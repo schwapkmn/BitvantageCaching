@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Matt Laquidara.
+ * Copyright 2020 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,15 @@
  */
 package com.bitvantage.bitvantagecaching;
 
+import java.util.UUID;
+import lombok.Value;
+
 /**
  *
  * @author Matt Laquidara
  */
-public interface Serializer<V> {
-    
-    byte[] getBytes(V value) throws BitvantageStoreException;
-    
-    V getValue(byte[] bytes) throws BitvantageStoreException;
-    
+@Value
+public class VersionedWrapper<O> {
+    private final UUID version;
+    private final O value;
 }

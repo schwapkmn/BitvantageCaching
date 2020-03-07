@@ -15,7 +15,6 @@
  */
 package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.bitvantage.bitvantagecaching.Serializer;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.GsonSerializer;
 import com.bitvantage.bitvantagecaching.lmdb.RangedNativeLmdbStore;
@@ -29,6 +28,7 @@ import java.util.SortedMap;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  *
@@ -40,7 +40,7 @@ public class RangedNativeLmdbStoreTest {
     public void testGetsNothing() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -62,7 +62,7 @@ public class RangedNativeLmdbStoreTest {
     public void testGetsValueInRange() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -89,7 +89,7 @@ public class RangedNativeLmdbStoreTest {
     public void testGetsValueBeginningOfRange() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -113,7 +113,7 @@ public class RangedNativeLmdbStoreTest {
     public void testGetsValueEndOfRange() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -137,7 +137,7 @@ public class RangedNativeLmdbStoreTest {
     public void testDoesNotGetValueBeyondEndOfRange() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -163,7 +163,7 @@ public class RangedNativeLmdbStoreTest {
     public void testDoesNotGetValueBeforeBeginningOfRange() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -189,7 +189,7 @@ public class RangedNativeLmdbStoreTest {
     public void testGetsAllValues() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -217,7 +217,7 @@ public class RangedNativeLmdbStoreTest {
     public void testGetsOnlyValues() throws Exception {
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
 
@@ -248,7 +248,7 @@ public class RangedNativeLmdbStoreTest {
 
         final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager
                 = Mockito.mock(RangedKeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
 
         final RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> store
                 = getEmptyStore(keyManager, serializer);
@@ -276,7 +276,7 @@ public class RangedNativeLmdbStoreTest {
 
     private RangedNativeLmdbStore<TestPartitionKey, TestRangeKey, String> getEmptyStore(
             final RangedKeyManager<TestPartitionKey, TestRangeKey> keyManager,
-            final Serializer<String> serializer) {
+            final ValueSerializer<String> serializer) {
         final File storeDir = Files.createTempDir();
         final Path path = storeDir.toPath();
 

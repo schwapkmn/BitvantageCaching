@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
  *
  * @author Matt Laquidara
  */
-public class GsonSerializer<V> implements Serializer<V> {
+public class GsonSerializer<V> implements ValueSerializer<V> {
 
     private final Gson gson;
     private final TypeToken typeToken;

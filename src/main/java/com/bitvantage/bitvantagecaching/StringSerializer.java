@@ -15,14 +15,13 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.bitvantage.bitvantagecaching.Serializer;
 import java.nio.charset.StandardCharsets;
 
 /**
  * Serializes a string by representing it in UTF-8 byte representation.
  * @author Matt Laquidara
  */
-public class StringSerializer implements Serializer<String> {
+public class StringSerializer implements ValueSerializer<String> {
 
     @Override
     public byte[] getBytes(final String value) {

@@ -17,13 +17,13 @@ package com.bitvantage.bitvantagecaching.disk;
 
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
-import com.bitvantage.bitvantagecaching.Serializer;
 import com.bitvantage.bitvantagecaching.Store;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  *
@@ -34,7 +34,7 @@ public class FlatFileStore<K extends PartitionKey, V> implements Store<K, V> {
 
     private final Path directory;
     private final FileManager<K> fileManager;
-    private final Serializer<V> serializer;
+    private final ValueSerializer<V> serializer;
 
     @Override
     public boolean containsKey(final K key) throws BitvantageStoreException,

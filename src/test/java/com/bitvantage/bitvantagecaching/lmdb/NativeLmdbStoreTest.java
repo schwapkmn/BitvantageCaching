@@ -15,7 +15,6 @@
  */
 package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.bitvantage.bitvantagecaching.Serializer;
 import com.bitvantage.bitvantagecaching.testhelpers.KeyValueHelpers;
 import com.bitvantage.bitvantagecaching.testhelpers.TestPartitionKey;
 import com.google.common.io.Files;
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  *
@@ -35,7 +35,7 @@ public class NativeLmdbStoreTest {
     public void testDoesNotContainKey() throws Exception {
         final KeyManager<TestPartitionKey> keyManager
                 = Mockito.mock(KeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
 
         final NativeLmdbStore<TestPartitionKey, String> store = getEmptyStore(
                 keyManager, serializer);
@@ -52,7 +52,7 @@ public class NativeLmdbStoreTest {
     public void testContainsKey() throws Exception {
         final KeyManager<TestPartitionKey> keyManager
                 = Mockito.mock(KeyManager.class);
-        final Serializer<String> serializer = Mockito.mock(Serializer.class);
+        final ValueSerializer<String> serializer = Mockito.mock(ValueSerializer.class);
 
         final TestPartitionKey key = new TestPartitionKey("key");
         
@@ -68,7 +68,7 @@ public class NativeLmdbStoreTest {
 
     private NativeLmdbStore<TestPartitionKey, String> getEmptyStore(
             final KeyManager<TestPartitionKey> keyManager,
-            final Serializer<String> serializer) {
+            final ValueSerializer<String> serializer) {
         final File storeDir = Files.createTempDir();
         final Path path = storeDir.toPath();
 

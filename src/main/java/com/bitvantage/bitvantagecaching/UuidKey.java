@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Matt Laquidara.
+ * Copyright 2020 Matt Laquidara.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,14 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.google.common.primitives.Ints;
-import com.bitvantage.bitvantagecaching.ValueSerializer;
+import java.util.UUID;
+import lombok.Value;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class IntegerSerializer implements ValueSerializer<Integer> {
-
-    @Override
-    public byte[] getBytes(final Integer value) {
-        return Ints.toByteArray(value);
-    }
-
-    @Override
-    public Integer getValue(byte[] bytes) {
-        return Ints.fromByteArray(bytes);
-    }
-    
+@Value
+public class UuidKey implements PartitionKey {
+    private final UUID uuid;
 }

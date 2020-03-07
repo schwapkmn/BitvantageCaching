@@ -51,7 +51,7 @@ public class DynamoStore<P extends PartitionKey, V> implements Store<P, V> {
                        final DynamoStoreSerializer<P, V> serializer) {
         this.dynamo = new DynamoDB(client);
         this.table = dynamo.getTable(table);
-        this.keyName = serializer.getKeyName();
+        this.keyName = serializer.getPartitionKeyName();
         this.serializer = serializer;
     }
 
@@ -127,7 +127,7 @@ public class DynamoStore<P extends PartitionKey, V> implements Store<P, V> {
     }
 
     private Item retrieveItem(final P key) {
-        final String keyString = serializer.getKey(key);
+        final String keyString = serializer.getPartitionKey(key);
         final KeyAttribute hashKey = new KeyAttribute(keyName, keyString);
 
         return table.getItem(hashKey);

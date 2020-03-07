@@ -15,14 +15,14 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.bitvantage.bitvantagecaching.Serializer;
 import java.nio.ByteBuffer;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  *
  * @author Matt Laquidara
  */
-public class DoubleSerializer implements Serializer<Double> {
+public class DoubleSerializer implements ValueSerializer<Double> {
 
     @Override
     public byte[] getBytes(final Double value) {

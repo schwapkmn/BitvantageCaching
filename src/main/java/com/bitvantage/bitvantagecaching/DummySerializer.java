@@ -15,13 +15,11 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.bitvantage.bitvantagecaching.Serializer;
-
 /**
  *
  * @author Matt Laquidara
  */
-public class DummySerializer implements Serializer<Byte> {
+public class DummySerializer implements ValueSerializer<Byte> {
 
     private static final byte[] NO_BYTES = new byte[0];
     

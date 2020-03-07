@@ -25,15 +25,15 @@ import com.bitvantage.bitvantagecaching.PartitionKey;
  */
 public interface DynamoStoreSerializer<P extends PartitionKey, V> {
 
-    String getKey(P key);
+    String getPartitionKey(P key);
 
-    String getKeyName();
+    String getPartitionKeyName();
 
     String getValueName();
 
     Item serialize(P partition, V value);
 
-    V deserializeValue(Item item);
+    V deserializeValue(Item item) throws BitvantageStoreException;
 
     P deserializeKey(Item item) throws BitvantageStoreException;
 

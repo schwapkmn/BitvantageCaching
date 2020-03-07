@@ -99,4 +99,10 @@ public class S3Store<P extends PartitionKey, V> implements Store<P, V> {
         return objectList.isEmpty();
     }
 
+    public void delete(final P key) throws BitvantageStoreException,
+            InterruptedException {
+        final String keyString = serializer.getKey(key);
+        s3.deleteObject(bucket, keyString);
+    }
+
 }

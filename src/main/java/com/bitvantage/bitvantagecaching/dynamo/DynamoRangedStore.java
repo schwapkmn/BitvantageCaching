@@ -22,10 +22,8 @@ import com.amazonaws.services.dynamodbv2.document.Expected;
 import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.ItemCollection;
 import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
-import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.RangeKeyCondition;
-import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
@@ -35,19 +33,18 @@ import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.RangeKey;
 import com.bitvantage.bitvantagecaching.RangedStore;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
-import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author Matt Laquidara
  */
+@Slf4j
 public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
         implements RangedStore<P, R, V> {
 
@@ -68,18 +65,6 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
         this.hashKeyName = serializer.getPartitionKeyName();
         this.rangeKeyName = serializer.getRangeKeyName();
         this.serializer = serializer;
-    }
-
-    public Set<P> getPartitions() throws BitvantageStoreException {
-        final ImmutableSet.Builder<P> builder = ImmutableSet.builder();
-        final ItemCollection<ScanOutcome> items = table.scan();
-        final Iterator<Item> iterator = items.iterator();
-        while (iterator.hasNext()) {
-            final Item result = iterator.next();
-            final P key = serializer.deserializePartitionKey(result);
-            builder.add(key);
-        }
-        return builder.build();
     }
 
     @Override
@@ -249,6 +234,7 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
             table.putItem(item, new Expected(hashKeyName).notExist(),
                           new Expected(rangeKeyName).notExist());
         } catch (final ConditionalCheckFailedException e) {
+            log.info("Could not put, item was present.", e);
             return false;
         }
         return true;

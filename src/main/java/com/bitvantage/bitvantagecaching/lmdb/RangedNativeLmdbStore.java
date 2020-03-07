@@ -15,7 +15,6 @@
  */
 package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.bitvantage.bitvantagecaching.Serializer;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.RangeKey;
@@ -35,6 +34,7 @@ import org.lmdbjava.KeyRange;
 import org.lmdbjava.KeyRangeType;
 import org.lmdbjava.PutFlags;
 import org.lmdbjava.Txn;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  * Uses LMDB to associate ranged keys with values.
@@ -47,11 +47,11 @@ public class RangedNativeLmdbStore<P extends PartitionKey, R extends RangeKey<R>
     private final Env<ByteBuffer> env;
     private final Dbi<ByteBuffer> db;
     private final RangedKeyManager<P, R> keyManager;
-    private final Serializer<V> serializer;
+    private final ValueSerializer<V> serializer;
 
     public RangedNativeLmdbStore(final Path path,
                                  final RangedKeyManager<P, R> keyManager,
-                                 final Serializer<V> serializer,
+                                 final ValueSerializer<V> serializer,
                                  final int readers) {
         env = Env.create().setMaxDbs(1).setMapSize(107374182400L)
                 .setMaxReaders(readers).open(path.toFile());

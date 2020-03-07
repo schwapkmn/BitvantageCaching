@@ -15,7 +15,6 @@
  */
 package com.bitvantage.bitvantagecaching.lmdb;
 
-import com.bitvantage.bitvantagecaching.Serializer;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.Store;
 import java.nio.ByteBuffer;
@@ -29,6 +28,7 @@ import org.lmdbjava.Dbi;
 import org.lmdbjava.DbiFlags;
 import org.lmdbjava.Env;
 import org.lmdbjava.Txn;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  *
@@ -39,10 +39,10 @@ public class NativeLmdbStore<K extends PartitionKey, V> implements Store<K, V> {
     private final Env<ByteBuffer> env;
     private final Dbi<ByteBuffer> db;
     private final KeyManager<K> keyManager;
-    private final Serializer<V> serializer;
+    private final ValueSerializer<V> serializer;
 
     public NativeLmdbStore(final Path path, final KeyManager<K> keyManager,
-                           final Serializer<V> serializer, final int readers) {
+                           final ValueSerializer<V> serializer, final int readers) {
         env = Env.create().setMaxDbs(1).setMapSize(107374182400L)
                 .setMaxReaders(readers).open(path.toFile());
         db = env.openDbi("DB", DbiFlags.MDB_CREATE);

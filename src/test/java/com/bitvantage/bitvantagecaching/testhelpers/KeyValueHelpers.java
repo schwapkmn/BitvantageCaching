@@ -19,8 +19,8 @@ import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.lmdb.KeyManager;
 import com.bitvantage.bitvantagecaching.lmdb.Keys;
 import com.bitvantage.bitvantagecaching.lmdb.RangedKeyManager;
-import com.bitvantage.bitvantagecaching.Serializer;
 import org.mockito.Mockito;
+import com.bitvantage.bitvantagecaching.ValueSerializer;
 
 /**
  *
@@ -28,7 +28,7 @@ import org.mockito.Mockito;
  */
 public final class KeyValueHelpers {
 
-    public static void mockNoValue(final Serializer<String> serializer) 
+    public static void mockNoValue(final ValueSerializer<String> serializer) 
             throws BitvantageStoreException {
         Mockito.when(serializer.getBytes(Mockito.any()))
                 .thenReturn(new byte[1]);
