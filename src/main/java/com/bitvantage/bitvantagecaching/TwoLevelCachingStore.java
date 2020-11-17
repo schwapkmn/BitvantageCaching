@@ -15,7 +15,6 @@
  */
 package com.bitvantage.bitvantagecaching;
 
-import com.google.common.collect.Multiset;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 

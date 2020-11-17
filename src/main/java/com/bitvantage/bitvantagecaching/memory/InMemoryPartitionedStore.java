@@ -18,7 +18,7 @@ package com.bitvantage.bitvantagecaching.memory;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.RangeKey;
-import com.bitvantage.bitvantagecaching.RangedStore;
+import com.bitvantage.bitvantagecaching.RangedConditionedStore;
 import com.google.common.collect.ImmutableSortedMap;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +31,7 @@ import java.util.TreeMap;
  * @author Matt Laquidara
  */
 public class InMemoryPartitionedStore<P extends PartitionKey, R extends RangeKey<R>, V>
-        implements RangedStore<P, R, V> {
+        implements RangedConditionedStore<P, R, V> {
 
     final Map<P, NavigableMap<R, V>> partitionedMap;
 
@@ -137,6 +137,16 @@ public class InMemoryPartitionedStore<P extends PartitionKey, R extends RangeKey
             put(partitionKey, rangeKey, specifier);
         }
         return wasAbsent;
+    }
+
+    @Override
+    public V get(final P partition, final R rangeValue)
+            throws BitvantageStoreException, InterruptedException {
+        final NavigableMap<R, V> partitionValues
+                = partitionedMap.get(partition);
+
+        return (partitionValues == null) ? null
+                : partitionValues.get(rangeValue);
     }
 
 }

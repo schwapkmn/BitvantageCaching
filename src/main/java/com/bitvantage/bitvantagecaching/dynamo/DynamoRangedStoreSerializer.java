@@ -26,16 +26,14 @@ import com.bitvantage.bitvantagecaching.RangeKey;
  */
 public interface DynamoRangedStoreSerializer<P extends PartitionKey, R extends RangeKey<R>, V> {
                 
-    String getPartitionKey(P key);
+    byte[] getPartitionKey(P key);
     
     String getPartitionKeyName();
     
-    String getRangeKey(R key);
+    byte[] getRangeKey(R key);
     
     String getRangeKeyName();
-    
-    String getValueName();
-    
+        
     Item serialize(P partition, R range, V value);
     
     V deserializeValue(Item item);

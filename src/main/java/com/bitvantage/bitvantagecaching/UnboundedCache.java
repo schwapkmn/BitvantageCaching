@@ -37,7 +37,7 @@ public class UnboundedCache<K extends PartitionKey, V> implements TwoLevelCache<
         } else {
             hits++;
         }
-        return store.get(key);
+        return value;
     }
 
     @Override

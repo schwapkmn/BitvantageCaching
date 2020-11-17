@@ -22,6 +22,7 @@ import com.amazonaws.services.dynamodbv2.document.Item;
 import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
 import com.amazonaws.services.dynamodbv2.document.PutItemOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.ReturnValue;
@@ -31,11 +32,13 @@ import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.VersionedWrapper;
 import java.util.Optional;
 import java.util.UUID;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  * @author Matt Laquidara
  */
+@Slf4j
 public class DynamoOptimisticLockingStore<K extends PartitionKey, V>
         implements OptimisticLockingStore<K, V> {
 
@@ -47,7 +50,8 @@ public class DynamoOptimisticLockingStore<K extends PartitionKey, V>
 
     public DynamoOptimisticLockingStore(
             final AmazonDynamoDB client, final String table,
-            final VersionedDynamoStoreSerializer<K, V> serializer) {
+            final VersionedDynamoStoreSerializer<K, V> serializer) 
+            throws BitvantageStoreException {
         this.dynamo = new DynamoDB(client);
         this.table = dynamo.getTable(table);
         this.keyName = serializer.getPartitionKeyName();
@@ -71,14 +75,16 @@ public class DynamoOptimisticLockingStore<K extends PartitionKey, V>
                 .withExpected(expected)
                 .withItem(item)
                 .withReturnValues(ReturnValue.ALL_OLD);
-        
+
         try {
             final PutItemOutcome outcome = table.putItem(request);
             final Item oldItem = outcome.getItem();
-            final VersionedWrapper<V> oldValue  
+            final VersionedWrapper<V> oldValue
                     = serializer.deserializeValue(oldItem);
-            return Optional.of(oldValue.getValue());   
+            return Optional.of(oldValue.getValue());
         } catch (final ConditionalCheckFailedException e) {
+            log.info("Condition checked failed: " +
+                     "key={} value={} match={}.", key, value, match, e);
             return Optional.empty();
         }
     }
@@ -90,11 +96,14 @@ public class DynamoOptimisticLockingStore<K extends PartitionKey, V>
         table.putItem(item);
     }
 
-    private Item retrieveItem(final K key) {
-        final String keyString = serializer.getPartitionKey(key);
-        final KeyAttribute hashKey = new KeyAttribute(keyName, keyString);
+    private Item retrieveItem(final K key) throws BitvantageStoreException {
+        final byte[] keyBytes = serializer.getPartitionKey(key);
 
-        return table.getItem(hashKey);
+        final KeyAttribute hashKey = new KeyAttribute(keyName, keyBytes);
+        final GetItemSpec spec = new GetItemSpec()
+                .withPrimaryKey(hashKey)
+                .withConsistentRead(true);
+        return table.getItem(spec);
     }
 
 }

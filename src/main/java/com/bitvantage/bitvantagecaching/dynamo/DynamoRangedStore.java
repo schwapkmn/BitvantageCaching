@@ -26,13 +26,14 @@ import com.amazonaws.services.dynamodbv2.document.QueryOutcome;
 import com.amazonaws.services.dynamodbv2.document.RangeKeyCondition;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.RangeKey;
-import com.bitvantage.bitvantagecaching.RangedStore;
+import com.bitvantage.bitvantagecaching.RangedConditionedStore;
 import com.google.common.collect.ImmutableSortedMap;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
-        implements RangedStore<P, R, V> {
+        implements RangedConditionedStore<P, R, V> {
 
     private static final int BATCH_SIZE = 25;
 
@@ -57,9 +58,9 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
     private final Table table;
     private final DynamoDB dynamo;
 
-    public DynamoRangedStore(final AmazonDynamoDB client,
-                             final String table,
-                             final DynamoRangedStoreSerializer<P, R, V> serializer) {
+    public DynamoRangedStore(
+            final AmazonDynamoDB client, final String table,
+            final DynamoRangedStoreSerializer<P, R, V> serializer) {
         this.dynamo = new DynamoDB(client);
         this.table = dynamo.getTable(table);
         this.hashKeyName = serializer.getPartitionKeyName();
@@ -71,17 +72,18 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
     public NavigableMap<R, V> getValuesInRange(
             final P partition, final R min, final R max)
             throws InterruptedException, BitvantageStoreException {
-        final String hashValue = serializer.getPartitionKey(partition);
+        final byte[] hashValue = serializer.getPartitionKey(partition);
         final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
 
-        final String minValue = serializer.getRangeKey(min);
-        final String maxValue = serializer.getRangeKey(max);
+        final byte[] minValue = serializer.getRangeKey(min);
+        final byte[] maxValue = serializer.getRangeKey(max);
 
         final RangeKeyCondition rangeKeyCondition
                 = new RangeKeyCondition(rangeKeyName)
                         .between(minValue, maxValue);
 
         final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey)
+                .withConsistentRead(true)
                 .withRangeKeyCondition(rangeKeyCondition);
 
         return executeQuery(querySpec);
@@ -90,15 +92,17 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
     @Override
     public NavigableMap<R, V> getValuesAbove(final P partition, final R min)
             throws InterruptedException, BitvantageStoreException {
-        final String hashValue = serializer.getPartitionKey(partition);
+        final byte[] hashValue = serializer.getPartitionKey(partition);
         final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
 
-        final String minValue = serializer.getRangeKey(min);
+        final byte[] minValue = serializer.getRangeKey(min);
 
         final RangeKeyCondition rangeKeyCondition
                 = new RangeKeyCondition(rangeKeyName).ge(minValue);
 
-        final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey)
+        final QuerySpec querySpec = new QuerySpec()
+                .withHashKey(hashKey)
+                .withConsistentRead(true)
                 .withRangeKeyCondition(rangeKeyCondition);
 
         return executeQuery(querySpec);
@@ -107,16 +111,18 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
     @Override
     public NavigableMap<R, V> getValuesBelow(final P partition, final R max)
             throws InterruptedException, BitvantageStoreException {
-        final String hashValue = serializer.getPartitionKey(partition);
+        final byte[] hashValue = serializer.getPartitionKey(partition);
         final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
 
-        final String maxValue = serializer.getRangeKey(max);
+        final byte[] maxValue = serializer.getRangeKey(max);
 
         final RangeKeyCondition rangeKeyCondition
                 = new RangeKeyCondition(rangeKeyName).le(maxValue);
 
-        final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey)
-                .withRangeKeyCondition(rangeKeyCondition);
+        final QuerySpec querySpec = new QuerySpec()
+                .withHashKey(hashKey)
+                .withRangeKeyCondition(rangeKeyCondition)
+                .withConsistentRead(true);
 
         return executeQuery(querySpec);
     }
@@ -125,17 +131,18 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
     public NavigableMap<R, V> getNextValues(
             final P partition, final R min, final int count)
             throws InterruptedException, BitvantageStoreException {
-        final String hashValue = serializer.getPartitionKey(partition);
+        final byte[] hashValue = serializer.getPartitionKey(partition);
         final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
 
-        final String minValue = serializer.getRangeKey(min);
+        final byte[] minValue = serializer.getRangeKey(min);
 
         final RangeKeyCondition rangeKeyCondition
                 = new RangeKeyCondition(rangeKeyName).gt(minValue);
 
         final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey)
                 .withRangeKeyCondition(rangeKeyCondition)
-                .withMaxResultSize(count);
+                .withMaxResultSize(count)
+                .withConsistentRead(true);
 
         return executeQuery(querySpec);
     }
@@ -143,7 +150,7 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
     @Override
     public NavigableMap<R, V> getHeadValues(final P partition, final int count)
             throws InterruptedException, BitvantageStoreException {
-        final String hashValue = serializer.getPartitionKey(partition);
+        final byte[] hashValue = serializer.getPartitionKey(partition);
         final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
 
         final RangeKeyCondition rangeKeyCondition
@@ -151,7 +158,8 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
 
         final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey)
                 .withRangeKeyCondition(rangeKeyCondition)
-                .withMaxResultSize(count);
+                .withMaxResultSize(count)
+                .withConsistentRead(true);
 
         return executeQuery(querySpec);
     }
@@ -200,27 +208,14 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
         return false;
     }
 
-    private NavigableMap<R, V> executeQuery(final QuerySpec querySpec)
-            throws BitvantageStoreException {
-        final ItemCollection<QueryOutcome> result = table.query(querySpec);
-
-        final ImmutableSortedMap.Builder<R, V> builder
-                = ImmutableSortedMap.naturalOrder();
-        for (final Item item : result) {
-            final R rangeKey = serializer.deserializeRangeKey(item);
-            final V distance = serializer.deserializeValue(item);
-
-            builder.put(rangeKey, distance);
-        }
-        return builder.build();
-    }
-
     @Override
     public NavigableMap<R, V> getPartition(final P partition) throws
             InterruptedException, BitvantageStoreException {
-        final String hashValue = serializer.getPartitionKey(partition);
+        final byte[] hashValue = serializer.getPartitionKey(partition);
         final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
-        final QuerySpec querySpec = new QuerySpec().withHashKey(hashKey);
+        final QuerySpec querySpec = new QuerySpec()
+                .withHashKey(hashKey)
+                .withConsistentRead(true);
 
         return executeQuery(querySpec);
     }
@@ -238,6 +233,38 @@ public class DynamoRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
             return false;
         }
         return true;
+    }
+
+    private NavigableMap<R, V> executeQuery(final QuerySpec querySpec)
+            throws BitvantageStoreException {
+        final ItemCollection<QueryOutcome> result = table.query(querySpec);
+
+        final ImmutableSortedMap.Builder<R, V> builder
+                = ImmutableSortedMap.naturalOrder();
+        for (final Item item : result) {
+            final R rangeKey = serializer.deserializeRangeKey(item);
+            final V distance = serializer.deserializeValue(item);
+
+            builder.put(rangeKey, distance);
+        }
+        return builder.build();
+    }
+
+    @Override
+    public V get(final P partition, final R range)
+            throws BitvantageStoreException, InterruptedException {
+        final byte[] hashValue = serializer.getPartitionKey(partition);
+        final KeyAttribute hashKey = new KeyAttribute(hashKeyName, hashValue);
+
+        final byte[] rangeValue = serializer.getRangeKey(range);
+        final KeyAttribute rangeKey = new KeyAttribute(rangeKeyName,
+                                                       rangeValue);
+        
+        final GetItemSpec spec = new GetItemSpec()
+                .withPrimaryKey(hashKey, rangeKey);
+        
+        final Item item = table.getItem(spec);
+        return serializer.deserializeValue(item);
     }
 
 }

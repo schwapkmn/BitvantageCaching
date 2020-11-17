@@ -42,24 +42,15 @@ public interface RangedStore<P extends PartitionKey, R extends RangeKey<R>, V> {
     NavigableMap<R, V> getPartition(P partition)
             throws InterruptedException, BitvantageStoreException;
 
+    V get(P partition, R rangeValue)
+            throws BitvantageStoreException, InterruptedException;
+
     void put(P partition, R rangeValue, V value)
             throws BitvantageStoreException, InterruptedException;
 
     void putAll(P partition, Map<R, V> entries)
             throws BitvantageStoreException, InterruptedException;
 
-    boolean isEmpty();
-
-    /**
-     * Conditionally put an item in the store.
-     * @param partition The partition in which to place the item.
-     * @param range The range within the partition.
-     * @param value The value to put in the store.
-     * @return true if the call did put, false if an item was present.
-     * @throws BitvantageStoreException
-     * @throws InterruptedException 
-     */
-    public boolean putIfAbsent(P partition, R range, V value)
-            throws BitvantageStoreException, InterruptedException;
+    boolean isEmpty() throws BitvantageStoreException, InterruptedException;
 
 }

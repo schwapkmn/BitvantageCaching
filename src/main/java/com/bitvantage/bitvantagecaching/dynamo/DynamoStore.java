@@ -24,14 +24,15 @@ import com.amazonaws.services.dynamodbv2.document.KeyAttribute;
 import com.amazonaws.services.dynamodbv2.document.ScanOutcome;
 import com.amazonaws.services.dynamodbv2.document.Table;
 import com.amazonaws.services.dynamodbv2.document.TableWriteItems;
+import com.amazonaws.services.dynamodbv2.document.spec.GetItemSpec;
 import com.amazonaws.services.dynamodbv2.model.WriteRequest;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.Store;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -48,7 +49,8 @@ public class DynamoStore<P extends PartitionKey, V> implements Store<P, V> {
     private final DynamoDB dynamo;
 
     public DynamoStore(final AmazonDynamoDB client, final String table,
-                       final DynamoStoreSerializer<P, V> serializer) {
+                       final DynamoStoreSerializer<P, V> serializer)
+            throws BitvantageStoreException {
         this.dynamo = new DynamoDB(client);
         this.table = dynamo.getTable(table);
         this.keyName = serializer.getPartitionKeyName();
@@ -79,10 +81,11 @@ public class DynamoStore<P extends PartitionKey, V> implements Store<P, V> {
     @Override
     public void putAll(final Map<P, V> entries) throws BitvantageStoreException,
             InterruptedException {
-        final List<Item> items = entries.entrySet().stream()
-                .map(entry -> serializer.serialize(entry.getKey(),
-                                                   entry.getValue()))
-                .collect(Collectors.toList());
+        final ImmutableList.Builder<Item> builder = ImmutableList.builder();
+        for (final Map.Entry<P, V> entry : entries.entrySet()) {
+            builder.add(serializer.serialize(entry.getKey(), entry.getValue()));
+        }
+        final List<Item> items = builder.build();
         final int total = items.size();
 
         int start = 0;
@@ -111,10 +114,10 @@ public class DynamoStore<P extends PartitionKey, V> implements Store<P, V> {
     public Map<P, V> getAll() throws BitvantageStoreException,
             InterruptedException {
         final ItemCollection<ScanOutcome> result = table.scan();
-         final ImmutableMap.Builder<P, V> builder = ImmutableMap.builder();
+        final ImmutableMap.Builder<P, V> builder = ImmutableMap.builder();
         for (final Item item : result) {
             final P key = serializer.deserializeKey(item);
-            final V value = serializer.deserializeValue(item);            
+            final V value = serializer.deserializeValue(item);
             builder.put(key, value);
         }
         return builder.build();
@@ -126,9 +129,12 @@ public class DynamoStore<P extends PartitionKey, V> implements Store<P, V> {
         return false;
     }
 
-    private Item retrieveItem(final P key) {
-        final String keyString = serializer.getPartitionKey(key);
-        final KeyAttribute hashKey = new KeyAttribute(keyName, keyString);
+    private Item retrieveItem(final P key) throws BitvantageStoreException {
+        final byte[] keyBytes = serializer.getPartitionKey(key);
+        final KeyAttribute hashKey = new KeyAttribute(keyName, keyBytes);
+        final GetItemSpec spec = new GetItemSpec()
+                .withPrimaryKey(hashKey)
+                .withConsistentRead(true);
 
         return table.getItem(hashKey);
     }

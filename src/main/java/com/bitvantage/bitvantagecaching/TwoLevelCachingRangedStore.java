@@ -27,13 +27,14 @@ import java.util.NavigableMap;
  * @author Matt Laquidara
  */
 public class TwoLevelCachingRangedStore<P extends PartitionKey, R extends RangeKey<R>, V>
-        implements RangedStore<P, R, V> {
+        implements RangedConditionedStore<P, R, V> {
 
-    private final RangedStore<P, R, V> store;
+    private final RangedConditionedStore<P, R, V> store;
     private final RangedCache<P, R, V> cache;
 
-    public TwoLevelCachingRangedStore(final RangedStore<P, R, V> store,
-                              final RangedCache<P, R, V> cache) {
+    public TwoLevelCachingRangedStore(
+            final RangedConditionedStore<P, R, V> store,
+            final RangedCache<P, R, V> cache) {
         this.store = store;
         this.cache = cache;
     }
@@ -81,7 +82,7 @@ public class TwoLevelCachingRangedStore<P extends PartitionKey, R extends RangeK
 
     @Override
     public NavigableMap<R, V> getNextValues(final P partition, final R min,
-                                            final int count) 
+                                            final int count)
             throws InterruptedException, BitvantageStoreException {
         return store.getNextValues(partition, min, count);
     }
@@ -105,7 +106,8 @@ public class TwoLevelCachingRangedStore<P extends PartitionKey, R extends RangeK
     }
 
     @Override
-    public boolean isEmpty() {
+    public boolean isEmpty() throws BitvantageStoreException,
+            InterruptedException {
         return store.isEmpty();
     }
 
@@ -116,9 +118,20 @@ public class TwoLevelCachingRangedStore<P extends PartitionKey, R extends RangeK
     }
 
     @Override
-    public boolean putIfAbsent(P partitionKey, R rangeKey, V specifier) 
+    public boolean putIfAbsent(P partitionKey, R rangeKey, V specifier)
             throws BitvantageStoreException, InterruptedException {
         return store.putIfAbsent(partitionKey, rangeKey, specifier);
+    }
+
+    @Override
+    public V get(final P partition, final R rangeValue)
+            throws BitvantageStoreException, InterruptedException {
+        final NavigableMap<R, V> values = getValuesInRange(
+                partition, rangeValue, rangeValue);
+        if (values.isEmpty()) {
+            return null;
+        }
+        return values.values().iterator().next();
     }
 
 }

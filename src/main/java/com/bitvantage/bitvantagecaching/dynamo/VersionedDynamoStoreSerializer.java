@@ -37,7 +37,8 @@ public class VersionedDynamoStoreSerializer<P extends PartitionKey, V> {
         return "version";
     }
 
-    public Item serialize(final P partition, final V value) {
+    public Item serialize(final P partition, final V value) 
+            throws BitvantageStoreException {
         final Item item = serializer.serialize(partition, value);
         final byte[] uuidBytes = getUuidBytes(UUID.randomUUID());
         return item.withBinary(getVersionKey(), uuidBytes);
@@ -58,11 +59,11 @@ public class VersionedDynamoStoreSerializer<P extends PartitionKey, V> {
         return new Expected(getVersionKey()).eq(getUuidBytes(match));
     }
     
-    public String getPartitionKey(final P key) {
+    public byte[] getPartitionKey(final P key) throws BitvantageStoreException {
         return serializer.getPartitionKey(key);
     }
 
-    public String getPartitionKeyName() {
+    public String getPartitionKeyName() throws BitvantageStoreException {
         return serializer.getPartitionKeyName();
     }
 

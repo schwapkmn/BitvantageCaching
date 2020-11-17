@@ -18,7 +18,7 @@ package com.bitvantage.bitvantagecaching.lmdb;
 import com.bitvantage.bitvantagecaching.BitvantageStoreException;
 import com.bitvantage.bitvantagecaching.PartitionKey;
 import com.bitvantage.bitvantagecaching.RangeKey;
-import com.bitvantage.bitvantagecaching.RangedStore;
+import com.bitvantage.bitvantagecaching.RangedConditionedStore;
 import com.google.common.collect.ImmutableSortedMap;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +42,7 @@ import com.bitvantage.bitvantagecaching.ValueSerializer;
  * @author Matt Laquidara
  */
 public class RangedNativeLmdbStore<P extends PartitionKey, R extends RangeKey<R>, V>
-        implements RangedStore<P, R, V> {
+        implements RangedConditionedStore<P, R, V> {
 
     private final Env<ByteBuffer> env;
     private final Dbi<ByteBuffer> db;
@@ -297,6 +297,20 @@ public class RangedNativeLmdbStore<P extends PartitionKey, R extends RangeKey<R>
             final boolean wasAbsent = db.put(tx, keyBytes, valueBytes,
                                              PutFlags.MDB_NOOVERWRITE);
             return wasAbsent;
+        } finally {
+            tx.commit();
+            tx.close();
+        }
+    }
+
+    @Override
+    public V get(final P partition, final R range) 
+            throws BitvantageStoreException, InterruptedException {
+       
+        final ByteBuffer keyBytes = getKeyBytes(partition, range);
+        final Txn<ByteBuffer> tx = env.txnRead();
+        try {
+            return serializer.getValue(db.get(tx, keyBytes).array());
         } finally {
             tx.commit();
             tx.close();
